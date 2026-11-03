@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNSL Windows XP Professional - Laboratorio Purple Team (CWE-89, CWE-79, CWE-22)</title>
+
+  <!-- Framework XP.css (GitHub: botoxparty/XP.css) para estética auténtica de Windows XP Luna -->
+  <link rel="stylesheet" href="https://unpkg.com/xp.css">
+
+  <!-- ascii-magic para terminal retro MS-DOS y componentes interactivos -->
+  <script type="module" src="https://www.ascii-magic.com/ascii/ascii.js"></script>
+
+  <style>
+    /* ==========================================================================
+       ESTILO DE ESCRITORIO WINDOWS XP (LUNA BLUE + BLISS WALLPAPER)
+       ========================================================================== */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
+      font-size: 11px;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #desktop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 30px;
+      background: #1f64df url('images/bliss.png') no-repeat center center fixed;
+      background-size: cover;
+      overflow: hidden;
+    }
+
+    /* Iconos del Escritorio Windows XP */
+    .desktop-grid {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      z-index: 1;
+    }
+
+    .desktop-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 78px;
+      cursor: pointer;
+      text-align: center;
+      padding: 3px;
+      border-radius: 4px;
+      transition: background 0.1s;
+    }
+
+    .desktop-icon:hover {
+      background: rgba(11, 95, 255, 0.25);
+    }
+
+    .desktop-icon.selected {
+      background: rgba(11, 95, 255, 0.45);
+      border: 1px dotted rgba(255, 255, 255, 0.8);
+    }
+
+    .desktop-icon-img {
+      font-size: 34px;
+      margin-bottom: 3px;
+      filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.5));
+    }
+
+    .desktop-icon-title {
+      color: #ffffff;
+      font-size: 11px;
+      font-family: Tahoma, sans-serif;
+      padding: 2px 4px;
+      letter-spacing: 0;
+      text-shadow: 1px 1px 2px #000, 0 0 3px #000;
+      border-radius: 2px;
+      line-height: 1.2;
+    }
+
+    /* Ventanas flotantes arrastrables estilo Windows XP Luna */
+    .draggable-window {
+      position: absolute;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset -1px -1px #00138c, inset 1px 1px #0831d9, inset -2px -2px #001ea0, inset 2px 2px #166aee, inset -3px -3px #003bda, inset 3px 3px #0855dd;
+      background: #ece9d8;
+      padding: 0 0 3px 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .draggable-window.minimized {
+      display: none !important;
+    }
+
+    .draggable-window.maximized {
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: calc(100% - 30px) !important;
+      border-radius: 0 !important;
+      z-index: 50 !important;
+    }
+
+    .title-bar {
+      cursor: move;
+      font-family: "Trebuchet MS", Tahoma, sans-serif;
+    }
+
+    /* Inactive window title bar in Windows XP */
+    .draggable-window:not(.active) .title-bar {
+      background: linear-gradient(180deg, #7697c7 0%, #8ba7d3 50%, #7696c6 100%) !important;
+      border-color: #5c7cb0 !important;
+      text-shadow: 1px 1px rgba(0,0,0,0.3) !important;
+    }
+
+    .draggable-window:not(.active) {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset -1px -1px #6b84a9, inset 1px 1px #8da8ce;
+    }
+
+    /* Barra de Menú Windows XP */
+    .menubar-xp {
+      display: flex;
+      background: #ece9d8;
+      padding: 3px 6px;
+      border-bottom: 1px solid #d0ccb8;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .menu-item {
+      padding: 2px 6px;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .menu-item:hover {
+      background: #316ac5;
+      color: #fff;
+    }
+
+    .window-content-area {
+      background: #ece9d8;
+      padding: 8px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Tablas estilo Windows XP */
+    .table-container-xp {
+      background: #fff;
+      border: 1px solid #7f9db9;
+      border-radius: 2px;
+      overflow: auto;
+      max-height: 180px;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.08);
+    }
+
+    table.winxp-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 11px;
+      font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
+    }
+
+    table.winxp-table th {
+      background: linear-gradient(180deg, #fbfbfb 0%, #ece9d8 100%);
+      border-right: 1px solid #d0ccb8;
+      border-bottom: 1px solid #d0ccb8;
+      padding: 4px 8px;
+      text-align: left;
+      font-weight: 600;
+      color: #222;
+      position: sticky;
+      top: 0;
+    }
+
+    table.winxp-table td {
+      padding: 4px 8px;
+      border-bottom: 1px solid #f2f2f2;
+      white-space: nowrap;
+    }
+
+    table.winxp-table tbody tr:hover {
+      background: #316ac5;
+      color: #fff;
+    }
+
+    table.winxp-table tbody tr:hover td {
+      color: #fff;
+    }
+
+    /* ==========================================================================
+       TIPOGRAFÍA Y CONTRASTE DE ALTA LEGIBILIDAD (WINDOWS XP CRISP TEXT)
+       ========================================================================== */
+    body, .window, .window-content-area, p, span, div, label, li, td, th {
+      color: #1a1a1a;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Bloques de código con fondo claro y texto oscuro nítido (resuelve texto invisible) */
+    pre, pre *, .code-box-xp, .code-box-xp * {
+      font-family: Consolas, 'Courier New', Monaco, Menlo, monospace !important;
+      color: #111111 !important;
+      font-size: 12px !important;
+      line-height: 1.5 !important;
+      -webkit-font-smoothing: antialiased !important;
+    }
+
+    pre, .code-box-xp {
+      background-color: #f6f8fb !important;
+      color: #111111 !important;
+      border: 1px solid #7f9db9 !important;
+      border-radius: 3px !important;
+      padding: 10px 14px !important;
+      margin: 8px 0 !important;
+      overflow-x: auto !important;
+      white-space: pre !important;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Código en línea (inline code) con resaltado legible */
+    code {
+      font-family: Consolas, 'Courier New', Monaco, monospace !important;
+      color: #0b3d91 !important;
+      background-color: #eaf1f8 !important;
+      border: 1px solid #b8d2eb !important;
+      border-radius: 3px !important;
+      padding: 1px 5px !important;
+      font-weight: 600 !important;
+      font-size: 11.5px !important;
+    }
+
+    pre code {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      font-weight: normal !important;
+      font-size: 12px !important;
+      color: #111111 !important;
+    }
+
+    /* Clases de resaltado sintáctico de alto contraste */
+    .hl-kw  { color: #0000cd !important; font-weight: bold !important; }
+    .hl-str { color: #a31515 !important; }
+    .hl-com { color: #008000 !important; font-style: italic !important; }
+    .hl-sec { color: #c00000 !important; font-weight: bold !important; }
+
+    /* Excepción exclusiva: Consola MS-DOS verde fósforo sobre negro */
+    .msdos-screen, .msdos-screen * {
+      background-color: #000000 !important;
+      color: #00ff00 !important;
+      font-family: "Courier New", Consolas, monospace !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+      border: 1px solid #7f9db9 !important;
+      border-radius: 2px !important;
+      height: 220px !important;
+      overflow-y: auto !important;
+      white-space: pre-wrap !important;
+      box-shadow: inset 1px 1px 3px rgba(0,0,0,0.5) !important;
+    }
+
+    /* Entradas y controles de formulario con texto negro nítido */
+    input[type="text"] {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #7f9db9 !important;
+      border-radius: 2px !important;
+      padding: 4px 6px !important;
+      font-family: Tahoma, sans-serif !important;
+      font-size: 12px !important;
+    }
+
+    fieldset {
+      border: 1px solid #7f9db9 !important;
+      border-radius: 4px !important;
+      padding: 8px 12px !important;
+      margin-bottom: 10px !important;
+      background: #fbfbf8 !important;
+    }
+
+    legend {
+      color: #0a47b3 !important;
+      font-weight: bold !important;
+      font-size: 11.5px !important;
+      padding: 0 4px !important;
+    }
+
+    /* Botones de Chips y Acciones Rápidas XP */
+    .action-chip-xp {
+      background: linear-gradient(180deg, #ffffff 0%, #ece9d8 100%);
+      border: 1px solid #003c74;
+      border-radius: 3px;
+      padding: 3px 8px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 11px;
+      display: inline-block;
+      color: #003366;
+      font-weight: 500;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      font-family: Tahoma, sans-serif;
+    }
+
+    .action-chip-xp:hover {
+      border-color: #ff9900;
+      box-shadow: 0 0 4px #ff9900;
+      color: #000;
+    }
+
+    .action-chip-xp:active {
+      background: linear-gradient(180deg, #d8d4c2 0%, #ece9d8 100%);
+    }
+
+    .action-chip-xp.exploit {
+      border-color: #c00000;
+      color: #c00000;
+      font-weight: bold;
+    }
+
+    .action-chip-xp.exploit:hover {
+      border-color: #ff3333;
+      box-shadow: 0 0 5px #ff3333;
+      color: #900;
+    }
+
+    /* ==========================================================================
+       VISOR DE AYUDA Y SOPORTE TÉCNICO DE WINDOWS XP (HELP AND SUPPORT CENTER)
+       ========================================================================== */
+    .help-xp-banner {
+      background: linear-gradient(180deg, #0a54cf 0%, #2a73e6 50%, #1558c7 100%);
+      color: #ffffff;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #ff9900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .help-xp-toolbar {
+      background: linear-gradient(180deg, #f7f6f0 0%, #ece9d8 100%);
+      border-bottom: 1px solid #7f9db9;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .help-xp-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      background: #ffffff;
+      border: 1px solid #7f9db9;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: Tahoma, sans-serif;
+      color: #111;
+    }
+
+    .help-xp-btn:hover {
+      border-color: #ff9900;
+      box-shadow: 0 0 3px #ff9900;
+    }
+
+    .help-layout-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 8px;
+      height: 420px;
+      background: #ece9d8;
+      padding: 4px;
+    }
+
+    .help-toc-panel {
+      background: #ffffff;
+      border: 1px solid #7f9db9;
+      border-radius: 2px;
+      padding: 8px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.08);
+    }
+
+    .help-toc-item {
+      padding: 5px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 3px;
+      font-size: 11.5px;
+      color: #222;
+    }
+
+    .help-toc-item:hover {
+      background: #e5f1fb;
+      color: #0a47b3;
+    }
+
+    .help-toc-item.active {
+      background: #316ac5;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .help-doc-body {
+      background: #ffffff !important;
+      border: 1px solid #7f9db9 !important;
+      border-radius: 2px !important;
+      padding: 18px 24px !important;
+      overflow-y: auto !important;
+      line-height: 1.65 !important;
+      font-family: Tahoma, 'Segoe UI', Arial, sans-serif !important;
+      font-size: 12.5px !important;
+      color: #1a1a1a !important;
+      user-select: text !important;
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.06) !important;
+    }
+
+    .help-doc-body h2 {
+      font-size: 16px !important;
+      font-weight: bold !important;
+      color: #003399 !important;
+      border-bottom: 2px solid #ff9900 !important;
+      padding-bottom: 5px !important;
+      margin-top: 0 !important;
+      margin-bottom: 14px !important;
+    }
+
+    .help-doc-body h3 {
+      font-size: 13.5px !important;
+      font-weight: bold !important;
+      color: #004080 !important;
+      margin-top: 18px !important;
+      margin-bottom: 6px !important;
+    }
+
+    .help-doc-body p, .help-doc-body li {
+      color: #222222 !important;
+      font-size: 12px !important;
+      line-height: 1.65 !important;
+      margin-bottom: 8px !important;
+    }
+
+    .help-doc-body ul {
+      padding-left: 20px !important;
+      margin-bottom: 12px !important;
+    }
+
+    /* ==========================================================================
+       BARRA DE TAREAS WINDOWS XP (THE LUNA BLUE TASKBAR)
+       ========================================================================== */
+    #taskbar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background: linear-gradient(180deg, #1f2f86 0px, #3165c4 3%, #3682e1 5%, #3581e1 7%, #337ce0 10%, #2e70dc 12%, #2864d5 15%, #2053cb 20%, #2256ce 35%, #245adc 60%, #1e52c8 70%, #1742a9 90%, #1947b8 97%, #123088 100%);
+      border-top: 1px solid #3c87e8;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      padding: 0;
+      z-index: 1000;
+    }
+
+    /* Botón verde "inicio" legendario de Windows XP */
+    #startBtn {
+      height: 30px;
+      padding: 0 16px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(180deg, #388e3c 0%, #43a047 8%, #66bb6a 25%, #4caf50 50%, #388e3c 85%, #2e7d32 100%);
+      border: none;
+      border-top-right-radius: 15px;
+      border-bottom-right-radius: 15px;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -1px 0 rgba(0,0,0,0.4);
+      color: #ffffff;
+      font-family: 'Franklin Gothic Medium', 'Trebuchet MS', Arial, sans-serif;
+      font-size: 14px;
+      font-style: italic;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #144917;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+    }
+
+    #startBtn:hover {
+      background: linear-gradient(180deg, #43a047 0%, #5ba75e 8%, #81c784 25%, #58b65c 50%, #43a047 85%, #328736 100%);
+    }
+
+    #startBtn:active, #startBtn.active {
+      background: linear-gradient(180deg, #2e7d32 0%, #388e3c 15%, #4caf50 60%, #2e7d32 100%);
+      box-shadow: inset 1px 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .taskbar-apps {
+      display: flex;
+      gap: 3px;
+      flex: 1;
+      padding: 0 6px;
+      overflow-x: auto;
+    }
+
+    .task-button {
+      height: 24px;
+      min-width: 125px;
+      max-width: 180px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      background: linear-gradient(180deg, #3c8cf3 0%, #2f79e5 12%, #1a56c7 85%, #194eb8 100%);
+      border: 1px solid #1443a0;
+      border-radius: 3px;
+      color: #ffffff;
+      font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
+      font-size: 11px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 1px 2px rgba(0,0,0,0.25);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 1px 1px 1px #0a2d75;
+    }
+
+    .task-button:hover {
+      background: linear-gradient(180deg, #539df5 0%, #4189e8 12%, #2262d4 85%, #1e58c4 100%);
+    }
+
+    .task-button.active {
+      background: linear-gradient(180deg, #1742a9 0%, #1e52c8 15%, #235cd9 85%, #1a4ab9 100%);
+      border: 1px solid #0d2d76;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+      font-weight: bold;
+    }
+
+    /* System Tray / Notificaciones de Windows XP */
+    .system-tray-xp {
+      background: linear-gradient(180deg, #0e56c5 0%, #1263dd 10%, #1771f1 50%, #1264df 90%, #0d4eb5 100%);
+      border-left: 1px solid #1245a0;
+      box-shadow: inset 1px 0 0 rgba(255,255,255,0.25);
+      padding: 0 10px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
+      color: #ffffff;
+      text-shadow: 1px 1px 1px #08296a;
+    }
+
+    /* ==========================================================================
+       MENÚ INICIO DE WINDOWS XP (TWO-COLUMN LUNA BLUE MENU)
+       ========================================================================== */
+    #startMenu {
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      width: 380px;
+      height: 480px;
+      background: #ffffff;
+      border-radius: 6px 6px 0 0;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+      display: none;
+      flex-direction: column;
+      z-index: 2000;
+      overflow: hidden;
+      border: 1px solid #002d96;
+    }
+
+    #startMenu.open {
+      display: flex;
+    }
+
+    /* Cabecera del Menú Inicio con Avatar */
+    .start-header {
+      background: linear-gradient(180deg, #0947ba 0%, #1e62dc 50%, #2d73ee 100%);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #ff9900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .start-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 4px;
+      border: 2px solid #ffffff;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .start-user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .start-username {
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      text-shadow: 1px 1px 2px #001f66;
+    }
+
+    .start-role {
+      color: #dbe8fc;
+      font-size: 11px;
+    }
+
+    /* Columnas Dobles del Menú Inicio */
+    .start-body {
+      display: grid;
+      grid-template-columns: 195px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .start-left {
+      background: #ffffff;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      border-right: 1px solid #91a7b4;
+    }
+
+    .start-right {
+      background: #d3e5fa;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .start-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      color: #111;
+      font-size: 11px;
+      font-family: Tahoma, sans-serif;
+      transition: background 0.1s;
+    }
+
+    .start-item:hover {
+      background: #316ac5;
+      color: #ffffff;
+    }
+
+    .start-item:hover .start-item-desc {
+      color: #dbe8fc;
+    }
+
+    .start-item-icon {
+      font-size: 20px;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .start-item-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .start-item-title {
+      font-weight: bold;
+    }
+
+    .start-item-desc {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .start-separator {
+      height: 1px;
+      background: #d0d7de;
+      margin: 4px 6px;
+    }
+
+    /* Pie del Menú Inicio */
+    .start-footer {
+      background: linear-gradient(180deg, #1b57c7 0%, #1648a8 100%);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-top: 1px solid #002d96;
+    }
+
+    .start-footer-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      font-family: Tahoma, sans-serif;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
+
+    .start-footer-btn:hover {
+      background: rgba(255,255,255,0.18);
+    }
+  </style>
+</head>
+<body onclick="handleUserFirstClick()">
+
+  <!-- =========================================================================
+       ESCRITORIO WINDOWS XP (BLISS WALLPAPER)
+       ========================================================================= -->
+  <div id="desktop" onclick="handleDesktopClick(event)">
+
+    <!-- Iconos del Escritorio -->
+    <div class="desktop-grid">
+      <div class="desktop-icon" id="icon-manual" ondblclick="openWindow('win-manual')">
+        <div class="desktop-icon-img">📖</div>
+        <span class="desktop-icon-title">Manual Lab.hlp</span>
+      </div>
+      <div class="desktop-icon" id="icon-directorio" ondblclick="openWindow('win-directorio')">
+        <div class="desktop-icon-img">👥</div>
+        <span class="desktop-icon-title">Directorio UNSL.exe</span>
+      </div>
+      <div class="desktop-icon" id="icon-perfil" ondblclick="openWindow('win-perfil')">
+        <div class="desktop-icon-img">🪪</div>
+        <span class="desktop-icon-title">Credencial.exe</span>
+      </div>
+      <div class="desktop-icon" id="icon-documentos" ondblclick="openWindow('win-documentos')">
+        <div class="desktop-icon-img">📁</div>
+        <span class="desktop-icon-title">Explorador.exe</span>
+      </div>
+      <div class="desktop-icon" id="icon-dos" ondblclick="openWindow('win-dos')">
+        <div class="desktop-icon-img">💻</div>
+        <span class="desktop-icon-title">MS-DOS Prompt</span>
+      </div>
+      <div class="desktop-icon" id="icon-panel" ondblclick="openWindow('win-panel')">
+        <div class="desktop-icon-img">⚙️</div>
+        <span class="desktop-icon-title">Panel Purple Team</span>
+      </div>
+      <div class="desktop-icon" ondblclick="alert('Papelera de reciclaje de Windows XP vacía.');">
+        <div class="desktop-icon-img">🗑️</div>
+        <span class="desktop-icon-title">Papelera</span>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA GUÍA: MANUAL DE LABORATORIO PURPLE TEAM (AYUDA Y SOPORTE XP)
+         ======================================================================= -->
+    <div id="win-manual" class="draggable-window window" style="top: 20px; left: 90px; width: 800px; z-index: 15;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-manual')">
+        <div class="title-bar-text">Centro de Ayuda y Soporte Técnico - Manual Purple Team (UNSL)</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-manual')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-manual')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-manual')"></button>
+        </div>
+      </div>
+
+      <!-- Banner Superior de Ayuda Windows XP -->
+      <div class="help-xp-banner">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:22px;">❓</span>
+          <div>
+            <strong style="font-size:13px;">Ayuda y Soporte Técnico de Windows XP</strong>
+            <div style="font-size:10px; opacity:0.9;">Taller Universitario de Seguridad Web · Detección y Remediación de Vulnerabilidades</div>
+          </div>
+        </div>
+        <span style="background:#ff9900; color:#000; font-weight:bold; font-size:10px; padding:2px 6px; border-radius:3px;">F1 DISPONIBLE</span>
+      </div>
+
+      <!-- Barra de Botones del Visor de Ayuda XP -->
+      <div class="help-xp-toolbar">
+        <button type="button" class="help-xp-btn" onclick="loadManualSection('intro')">◀ Atrás</button>
+        <button type="button" class="help-xp-btn" onclick="loadManualSection('cwe89')">Adelante ▶</button>
+        <button type="button" class="help-xp-btn" onclick="loadManualSection('intro')">🏠 Inicio</button>
+        <button type="button" class="help-xp-btn" onclick="window.print()">🖨️ Imprimir</button>
+        <button type="button" class="help-xp-btn" style="margin-left:auto; font-weight:bold; color:#003366;" onclick="openWindow('win-directorio')">🚀 Ir al Laboratorio »</button>
+      </div>
+
+      <div class="window-content-area" style="padding:4px;">
+        <div class="help-layout-grid">
+          <!-- Panel Izquierdo: Índice de Contenidos -->
+          <div class="help-toc-panel">
+            <div style="font-weight:bold; font-size:11px; margin-bottom:6px; color:#0a54cf; border-bottom:1px solid #c2d5eb; padding-bottom:3px;">
+              📚 Temario del Taller:
+            </div>
+            <div class="help-toc-item active" id="toc-intro" onclick="loadManualSection('intro')">
+              <span>📌</span> <span>1. Inicialización & Docker</span>
+            </div>
+            <div class="help-toc-item" id="toc-cwe89" onclick="loadManualSection('cwe89')">
+              <span>💉</span> <span>2. Módulo 1: SQLi (CWE-89)</span>
+            </div>
+            <div class="help-toc-item" id="toc-cwe79" onclick="loadManualSection('cwe79')">
+              <span>⚡</span> <span>3. Módulo 2: XSS (CWE-79)</span>
+            </div>
+            <div class="help-toc-item" id="toc-cwe22" onclick="loadManualSection('cwe22')">
+              <span>📂</span> <span>4. Módulo 3: Traversal (CWE-22)</span>
+            </div>
+            <div class="help-toc-item" id="toc-verif" onclick="loadManualSection('verif')">
+              <span>✅</span> <span>5. Verificación & Recompilación</span>
+            </div>
+          </div>
+
+          <!-- Panel Derecho: Visor de Texto del Manual -->
+          <div class="help-doc-body" id="manualContentArea">
+            <!-- Cargado dinámicamente con JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field">Manual Interactivo Cargado</p>
+        <p class="status-bar-field">UNSL DevSecOps 2026</p>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA 1: DIRECTORIO DE USUARIOS (CWE-89 SQL INJECTION)
+         ======================================================================= -->
+    <div id="win-directorio" class="draggable-window window" style="top: 45px; left: 160px; width: 640px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-directorio')">
+        <div class="title-bar-text">Directorio Activo Institucional - [CWE-89 SQL Injection]</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-directorio')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-directorio')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-directorio')"></button>
+        </div>
+      </div>
+
+      <div class="menubar-xp">
+        <span class="menu-item"><u>A</u>rchivo</span>
+        <span class="menu-item"><u>E</u>dición</span>
+        <span class="menu-item"><u>V</u>er</span>
+        <span class="menu-item" onclick="openWindow('win-manual'); loadManualSection('cwe89');">A<u>y</u>uda (F1)</span>
+      </div>
+
+      <div class="window-content-area">
+        <p style="margin-top:0;"><strong>Búsqueda en Base de Datos de Personal y Alumnos (H2 Database)</strong></p>
+        <p style="color:#555; font-size:11px;">Módulo académico para consultar roles y datos de cuentas en el sistema institucional.</p>
+
+        <form id="formSearch" onsubmit="executeUserSearch(event)" style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+          <label for="txtSqliUser"><strong>Buscar usuario:</strong></label>
+          <input type="text" id="txtSqliUser" value="admin" style="flex:1; padding:3px 6px;">
+          <button type="submit">Buscar</button>
+        </form>
+
+        <!-- Chips de Ataque Red Team -->
+        <div style="margin-bottom:8px;">
+          <span style="font-size:10px; font-weight:bold; color:#444;">Payloads Red Team:</span>
+          <span class="action-chip-xp" onclick="setQuery('admin')">Usuario 'admin'</span>
+          <span class="action-chip-xp" onclick="setQuery('profesor1')">Usuario 'profesor1'</span>
+          <span class="action-chip-xp exploit" onclick="setQuery(\"' OR '1'='1\")">💥 Bypass: ' OR '1'='1</span>
+          <span class="action-chip-xp exploit" onclick="setQuery(\"admin' --\")">💥 Bypass: admin' --</span>
+          <span class="action-chip-xp exploit" onclick="setQuery(\"' UNION SELECT 99, 'Hacked', 'PWN', 'SECRET', '999-99-9999' --\")">💥 UNION Injection</span>
+        </div>
+
+        <div style="background:#fff; border:1px solid #7f9db9; padding:5px 8px; margin-bottom:8px; font-size:11px;">
+          <strong>Sentencia SQL Ejecutada:</strong><br>
+          <code id="lblSqlExecuted" style="color:#000080; word-break:break-all;">-</code>
+        </div>
+
+        <!-- Tabla estilo XP -->
+        <div class="table-container-xp">
+          <table class="winxp-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Password (Hash / Plano)</th>
+                <th>SSN (Dato Sensible)</th>
+              </tr>
+            </thead>
+            <tbody id="tblUsersBody">
+              <tr><td colspan="5" style="text-align:center;">Cargando directorio...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Botón Ver Código Fuente -->
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" onclick="toggleSourceCode('code-sqli')">Ver Código Fuente (Vulnerable vs. Corregido)</button>
+          <span style="font-size:10px; color:#666;">Endpoint: <code>/api/users/search</code></span>
+        </div>
+
+        <div id="code-sqli" style="display:none; margin-top:8px;">
+          <fieldset>
+            <legend>Auditoría de Código: CWE-89</legend>
+            <p><strong>Inseguro (Vulnerable por Concatenación):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-sec">// VULNERABLE: Concatenación directa de parámetro en sentencia SQL</span>
+<span class="hl-kw">String</span> sql = <span class="hl-str">"SELECT * FROM users WHERE username = '"</span> + username + <span class="hl-str">"'"</span>;
+<span class="hl-kw">ResultSet</span> rs = stmt.executeQuery(sql); <span class="hl-com">// Parser interpreta datos como código</span></code></pre>
+            <p><strong>Remediado (PreparedStatement / Parámetros Bind):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-kw">String</span> sql = <span class="hl-str">"SELECT id, username, role FROM users WHERE username = ?"</span>;
+<span class="hl-kw">PreparedStatement</span> ps = conn.prepareStatement(sql);
+ps.setString(1, username); <span class="hl-com">// El motor SQL trata el parámetro como valor literal</span></code></pre>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field" id="statusDirectorio">Directorio Conectado a H2</p>
+        <p class="status-bar-field">Puerto 8080</p>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA 2: PERFIL Y CARNET DIGITAL (CWE-79 REFLECTED XSS)
+         ======================================================================= -->
+    <div id="win-perfil" class="draggable-window window" style="top: 70px; left: 200px; width: 600px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-perfil')">
+        <div class="title-bar-text">Credencial Digital del Campus - [CWE-79 Reflected XSS]</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-perfil')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-perfil')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-perfil')"></button>
+        </div>
+      </div>
+
+      <div class="menubar-xp">
+        <span class="menu-item"><u>P</u>erfil</span>
+        <span class="menu-item"><u>C</u>arnet</span>
+        <span class="menu-item" onclick="openWindow('win-manual'); loadManualSection('cwe79');">A<u>y</u>uda (F1)</span>
+      </div>
+
+      <div class="window-content-area">
+        <p style="margin-top:0;"><strong>Generador de Credencial y Saludo Institucional</strong></p>
+        <p style="color:#555; font-size:11px;">Endpoint que genera una vista HTML interpolando directamente el nombre ingresado.</p>
+
+        <form id="formProfile" onsubmit="executeProfileGreet(event)" style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+          <label for="txtXssName"><strong>Nombre del Titular:</strong></label>
+          <input type="text" id="txtXssName" value="Elias" style="flex:1; padding:3px 6px;">
+          <button type="submit">Generar Saludo</button>
+        </form>
+
+        <!-- Chips de Ataque XSS -->
+        <div style="margin-bottom:8px;">
+          <span style="font-size:10px; font-weight:bold; color:#444;">Vectores XSS:</span>
+          <span class="action-chip-xp" onclick="setNameInput('Elias')">Nombre Seguro</span>
+          <span class="action-chip-xp exploit" onclick="setNameInput('&lt;script&gt;alert(&quot;XSS_EJECUTADO_UNSL&quot;)&lt;/script&gt;')">💥 Payload: &lt;script&gt;</span>
+          <span class="action-chip-xp exploit" onclick="setNameInput('&lt;img src=x onerror=&quot;alert(\'XSS_IMG_POC\')&quot;&gt;')">💥 Payload: &lt;img onerror&gt;</span>
+          <span class="action-chip-xp exploit" onclick="setNameInput('&lt;b style=&quot;color:red; font-size:20px;&quot;&gt;DESFIGURADO&lt;/b&gt;')">💥 HTML Injection</span>
+        </div>
+
+        <div style="background:#fff; border:1px solid #7f9db9; padding:5px 8px; margin-bottom:8px; font-size:11px;">
+          <strong>Cabecera Content-Security-Policy (CSP):</strong><br>
+          <code id="lblXssCsp" style="color:#000080; word-break:break-all;">[NO CONFIGURADA]</code>
+        </div>
+
+        <!-- Renderizador HTML Aislado -->
+        <fieldset>
+          <legend>Visor del Carnet Emitido por el Servidor (Respuesta text/html)</legend>
+          <iframe id="iframeXss" style="width:100%; height:130px; background:#fff; border:1px solid #7f9db9; border-radius:2px;"></iframe>
+        </fieldset>
+
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" onclick="toggleSourceCode('code-xss')">Ver Código Fuente (Vulnerable vs. Corregido)</button>
+          <span style="font-size:10px; color:#666;">Endpoint: <code>/api/profile/greet</code></span>
+        </div>
+
+        <div id="code-xss" style="display:none; margin-top:8px;">
+          <fieldset>
+            <legend>Auditoría de Código: CWE-79</legend>
+            <p><strong>Inseguro (Interpolación cruda en HTML):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-sec">// VULNERABLE: Inyección directa de entrada en cuerpo HTML</span>
+<span class="hl-kw">return</span> ResponseEntity.ok()
+    .contentType(MediaType.TEXT_HTML)
+    .body(<span class="hl-str">"&lt;h1&gt;Bienvenido "</span> + name + <span class="hl-str">"&lt;/h1&gt;"</span>); <span class="hl-com">// Browser ejecuta tags arbitrarios</span></code></pre>
+            <p><strong>Remediado (Encode.forHtml + Content-Security-Policy):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-kw">String</span> safeName = Encode.forHtml(name); <span class="hl-com">// Sanitiza &lt;, &gt;, &quot;, &#39;, &amp;</span>
+<span class="hl-kw">return</span> ResponseEntity.ok()
+    .header(<span class="hl-str">"Content-Security-Policy"</span>, <span class="hl-str">"default-src 'self'; script-src 'none';"</span>)
+    .contentType(MediaType.TEXT_HTML)
+    .body(<span class="hl-str">"&lt;h1&gt;Bienvenido "</span> + safeName + <span class="hl-str">"&lt;/h1&gt;"</span>);</code></pre>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field">Módulo XSS Listo</p>
+        <p class="status-bar-field">Filtro Contextual OWASP</p>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA 3: EXPLORADOR DE ARCHIVOS (CWE-22 PATH TRAVERSAL)
+         ======================================================================= -->
+    <div id="win-documentos" class="draggable-window window" style="top: 95px; left: 240px; width: 620px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-documentos')">
+        <div class="title-bar-text">Explorador de Archivos Institucionales - [CWE-22 Path Traversal]</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-documentos')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-documentos')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-documentos')"></button>
+        </div>
+      </div>
+
+      <div class="menubar-xp">
+        <span class="menu-item"><u>A</u>rchivo</span>
+        <span class="menu-item"><u>E</u>xplorar</span>
+        <span class="menu-item" onclick="openWindow('win-manual'); loadManualSection('cwe22');">A<u>y</u>uda (F1)</span>
+      </div>
+
+      <div class="window-content-area">
+        <p style="margin-top:0;"><strong>Servicio de Descarga de Documentos Académicos</strong></p>
+        <p style="color:#555; font-size:11px;">El directorio base autorizado es: <code>/app/storage/public/</code>. Fuera de él se encuentra <code>/app/storage/confidential/flag.txt</code>.</p>
+
+        <form id="formFiles" onsubmit="executeFileDownload(event)" style="display:flex; gap:6px; align-items:center; margin-bottom:8px;">
+          <label for="txtFile"><strong>Archivo a descargar:</strong></label>
+          <input type="text" id="txtFile" value="reporte_auditoria_2026.txt" style="flex:1; padding:3px 6px;">
+          <button type="submit">Descargar</button>
+        </form>
+
+        <!-- Chips de Ataque Path Traversal -->
+        <div style="margin-bottom:8px;">
+          <span style="font-size:10px; font-weight:bold; color:#444;">Pruebas de Ruta:</span>
+          <span class="action-chip-xp" onclick="setFileTarget('reporte_auditoria_2026.txt')">📄 Reporte Público</span>
+          <span class="action-chip-xp" onclick="setFileTarget('politica_seguridad.txt')">📄 Política de Seguridad</span>
+          <span class="action-chip-xp exploit" onclick="setFileTarget('../confidential/flag.txt')">💥 Exploit: ../confidential/flag.txt</span>
+          <span class="action-chip-xp exploit" onclick="setFileTarget('../../confidential/flag.txt')">💥 Exploit: ../../confidential/flag.txt</span>
+          <span class="action-chip-xp exploit" onclick="setFileTarget('/etc/passwd')">💥 Exploit: /etc/passwd</span>
+        </div>
+
+        <div style="background:#fff; border:1px solid #7f9db9; padding:5px 8px; margin-bottom:8px; font-size:11px;">
+          <div><strong>Directorio Base Autorizado:</strong> <span id="lblBase">-</span></div>
+          <div><strong>Ruta Absoluta Resuelta:</strong> <span id="lblResolved">-</span></div>
+          <div><strong>Control de Límites (Boundaries):</strong> <strong id="lblBounds" style="color:blue;">-</strong></div>
+        </div>
+
+        <fieldset>
+          <legend>Contenido del Archivo Obtenido</legend>
+          <pre id="preFileResult" class="code-box-xp" style="height:120px; overflow:auto; margin:0;">[Haga clic en Descargar para visualizar el contenido]</pre>
+        </fieldset>
+
+        <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" onclick="toggleSourceCode('code-traversal')">Ver Código Fuente (Vulnerable vs. Corregido)</button>
+          <span style="font-size:10px; color:#666;">Endpoint: <code>/api/files/download</code></span>
+        </div>
+
+        <div id="code-traversal" style="display:none; margin-top:8px;">
+          <fieldset>
+            <legend>Auditoría de Código: CWE-22</legend>
+            <p><strong>Inseguro (Concatenación directa de nombres de archivo):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-sec">// VULNERABLE: No se valida si el archivo resuelto queda dentro de baseDir</span>
+<span class="hl-kw">File</span> file = <span class="hl-kw">new</span> <span class="hl-kw">File</span>(baseDir, filename); <span class="hl-com">// Permite secuencias ../</span>
+<span class="hl-kw">return</span> Files.readAllBytes(file.toPath());</code></pre>
+            <p><strong>Remediado (Path.normalize() + startsWith):</strong></p>
+            <pre class="code-box-xp"><code><span class="hl-kw">Path</span> basePath = Paths.get(baseDir).toRealPath();
+<span class="hl-kw">Path</span> targetPath = basePath.resolve(filename).normalize();
+<span class="hl-kw">if</span> (!targetPath.startsWith(basePath)) {
+    <span class="hl-kw">throw new</span> <span class="hl-kw">SecurityException</span>(<span class="hl-str">"Escape de directorio detectado."</span>);
+}</code></pre>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field" id="lblFileStatus">Almacenamiento Conectado</p>
+        <p class="status-bar-field">/app/storage/</p>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA 4: CONSOLA MS-DOS PROMPT CON ASCII-MAGIC
+         ======================================================================= -->
+    <div id="win-dos" class="draggable-window window" style="top: 120px; left: 280px; width: 620px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-dos')">
+        <div class="title-bar-text">Símbolo del sistema - MS-DOS Prompt (UNSL DevSecOps)</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-dos')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-dos')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-dos')"></button>
+        </div>
+      </div>
+
+      <div class="window-content-area" style="background:#000; padding:6px;">
+        <!-- Componente animado ascii-magic: globo de comunicaciones de red -->
+        <div style="display:flex; justify-content:center; margin-bottom:6px;">
+          <wireframe-globe size="14" speed="1.2" color="#00ff00"></wireframe-globe>
+        </div>
+
+        <div class="msdos-screen" id="dosOutput">Microsoft Windows XP [Versión 5.1.2600]
+(C) Copyright 1985-2001 Microsoft Corp.
+UNSL Ciberlab - Entorno Purple Team Iniciado.
+=============================================================
+* H2 Database activa en jdbc:h2:mem:ciberlabdb
+* Almacenamiento local montado en /app/storage/
+* Telemetría de seguridad lista para registrar auditorías.
+=============================================================
+C:\UNSL\DEVSECOPS&gt;</div>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field">MS-DOS Prompt Listo</p>
+        <p class="status-bar-field">Consola VT100 / ANSI</p>
+      </div>
+    </div>
+
+    <!-- =======================================================================
+         VENTANA 5: PANEL DE CONTROL DEVSECOPS (CONMUTADOR VULN / SAFE)
+         ======================================================================= -->
+    <div id="win-panel" class="draggable-window window" style="top: 145px; left: 320px; width: 560px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'win-panel')">
+        <div class="title-bar-text">Panel de Control DevSecOps - [Configuración del Laboratorio]</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" onclick="minimizeWindow('win-panel')"></button>
+          <button aria-label="Maximize" onclick="toggleMaximize('win-panel')"></button>
+          <button aria-label="Close" onclick="closeWindow('win-panel')"></button>
+        </div>
+      </div>
+
+      <div class="window-content-area">
+        <p style="margin-top:0;"><strong>Conmutador Global de Comportamiento del Servidor</strong></p>
+        <p style="color:#555; font-size:11px;">Permite alternar en tiempo real entre el flujo vulnerable para ejercicios de laboratorio y el flujo remediado para validar las defensas implementadas.</p>
+
+        <div style="background:#fff; border:1px solid #7f9db9; border-radius:3px; padding:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size:13px; font-weight:bold;" id="lblModeStatus">ESTADO ACTUAL: MODO VULNERABLE</div>
+            <div style="font-size:11px; color:#666;" id="lblModeDetails">Endpoints ejecutan sentencias concatenadas, HTML crudo y rutas directas.</div>
+          </div>
+          <button type="button" id="btnToggleMode" onclick="toggleGlobalMode()" style="padding:6px 14px; font-weight:bold; cursor:pointer;">
+            ACTIVAR MODO SEGURO
+          </button>
+        </div>
+
+        <fieldset>
+          <legend>Estado de las 3 Vulnerabilidades en este Modo</legend>
+          <ul style="margin:4px 0 8px 18px; padding:0; line-height:1.7;">
+            <li><strong>CWE-89 (SQL Injection):</strong> <span id="modSqliStatus" style="color:red; font-weight:bold;">VULNERABLE (Concatenación activa)</span></li>
+            <li><strong>CWE-79 (XSS Reflejado):</strong> <span id="modXssStatus" style="color:red; font-weight:bold;">VULNERABLE (HTML crudo sin CSP)</span></li>
+            <li><strong>CWE-22 (Path Traversal):</strong> <span id="modFileStatus" style="color:red; font-weight:bold;">VULNERABLE (Escape '../' habilitado)</span></li>
+          </ul>
+        </fieldset>
+
+        <p style="font-size:10px; color:#777; margin-top:8px;">
+          * Nota didáctica: Al editar y recompilar el código fuente Java con <code>mvn clean package</code>, los endpoints por defecto aplicarán las remediaciones definitivas.
+        </p>
+      </div>
+
+      <div class="status-bar">
+        <p class="status-bar-field" id="lblGlobalModeBar">MODO ACTUAL: VULNERABLE</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       MENÚ INICIO DE WINDOWS XP (TWO-COLUMN LUNA BLUE MENU)
+       ========================================================================= -->
+  <div id="startMenu">
+    <!-- Cabecera con Avatar de Usuario -->
+    <div class="start-header">
+      <div class="start-avatar">👨‍🎓</div>
+      <div class="start-user-info">
+        <span class="start-username">Estudiante Ciberlab</span>
+        <span class="start-role">UNSL · Purple Team DevSecOps</span>
+      </div>
+    </div>
+
+    <!-- Cuerpo con 2 Columnas Estilo Windows XP -->
+    <div class="start-body">
+      <!-- Columna Izquierda: Programas de Laboratorio -->
+      <div class="start-left">
+        <div class="start-item" onclick="openWindow('win-manual'); toggleStartMenu();">
+          <span class="start-item-icon">📖</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Manual de Laboratorio</span>
+            <span class="start-item-desc">Guía interactiva (F1)</span>
+          </div>
+        </div>
+        <div class="start-separator"></div>
+        <div class="start-item" onclick="openWindow('win-directorio'); toggleStartMenu();">
+          <span class="start-item-icon">👥</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Directorio UNSL</span>
+            <span class="start-item-desc">CWE-89 SQL Injection</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-perfil'); toggleStartMenu();">
+          <span class="start-item-icon">🪪</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Credencial Digital</span>
+            <span class="start-item-desc">CWE-79 XSS Reflejado</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-documentos'); toggleStartMenu();">
+          <span class="start-item-icon">📁</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Explorador Archivos</span>
+            <span class="start-item-desc">CWE-22 Path Traversal</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-dos'); toggleStartMenu();">
+          <span class="start-item-icon">💻</span>
+          <div class="start-item-text">
+            <span class="start-item-title">MS-DOS Prompt</span>
+            <span class="start-item-desc">Consola de auditoría</span>
+          </div>
+        </div>
+        <div class="start-separator"></div>
+        <div class="start-item" onclick="alert('Todos los programas de seguridad web instalados y operativos en Java 17.'); toggleStartMenu();">
+          <span class="start-item-icon">▶</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Todos los programas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Lugares del Sistema -->
+      <div class="start-right">
+        <div class="start-item" onclick="openWindow('win-documentos'); toggleStartMenu();">
+          <span class="start-item-icon">📂</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Mis Documentos</span>
+            <span class="start-item-desc">/app/storage/public</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-directorio'); toggleStartMenu();">
+          <span class="start-item-icon">🖥️</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Mi PC</span>
+            <span class="start-item-desc">H2 Database (In-Memory)</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-panel'); toggleStartMenu();">
+          <span class="start-item-icon">⚙️</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Panel de Control</span>
+            <span class="start-item-desc">DevSecOps Switcher</span>
+          </div>
+        </div>
+        <div class="start-item" onclick="openWindow('win-manual'); toggleStartMenu();">
+          <span class="start-item-icon">❓</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Ayuda y soporte</span>
+            <span class="start-item-desc">Documentación técnica</span>
+          </div>
+        </div>
+        <div class="start-separator"></div>
+        <div class="start-item" onclick="alert('Sistema en ejecución: Spring Boot 3.3.5 en puerto 8080.'); toggleStartMenu();">
+          <span class="start-item-icon">⚡</span>
+          <div class="start-item-text">
+            <span class="start-item-title">Ejecutar...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie del Menú Inicio con Botones de Cierre -->
+    <div class="start-footer">
+      <button class="start-footer-btn" onclick="alert('Sesión de estudiante en curso.'); toggleStartMenu();">
+        <span>🔑</span>
+        <span>Cerrar sesión</span>
+      </button>
+      <button class="start-footer-btn" onclick="alert('Para apagar el entorno ejecute: docker compose down'); toggleStartMenu();">
+        <span style="color:#ff4444;">🛑</span>
+        <span>Apagar equipo...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       BARRA DE TAREAS WINDOWS XP (LUNA BLUE TASKBAR)
+       ========================================================================= -->
+  <div id="taskbar">
+    <button id="startBtn" onclick="toggleStartMenu()">
+      <!-- Bandera original de Windows XP (4 colores ondulados) -->
+      <svg width="18" height="18" viewBox="0 0 18 18">
+        <g transform="translate(1,1)">
+          <path d="M1 1 Q4 2 7 1 Q7.5 4 7 7 Q4 8 1 7 Z" fill="#e0301e" />
+          <path d="M8 1 Q11 0 14 1 Q14.5 4 14 7 Q11 6 8 7 Z" fill="#5cb82e" />
+          <path d="M1 8 Q4 9 7 8 Q6.5 11 7 14 Q4 13 1 14 Z" fill="#1e70d4" />
+          <path d="M8 8 Q11 7 14 8 Q13.5 11 14 14 Q11 15 8 14 Z" fill="#fbb01e" />
+        </g>
+      </svg>
+      <span>inicio</span>
+    </button>
+
+    <div class="taskbar-apps" id="taskbarApps">
+      <!-- Los botones de ventanas activas se generan dinámicamente -->
+    </div>
+
+    <!-- System Tray de Windows XP -->
+    <div class="system-tray-xp">
+      <span style="font-size:10px; font-weight:bold; background:#002288; color:#fff; padding:2px 4px; border-radius:2px;">PURPLE</span>
+      <span id="trayMode" style="color:#ffcc00; font-weight:bold;">VULN</span>
+      <span style="cursor:pointer;" onclick="playXpStartup()" title="Reproducir sonido de inicio de Windows XP">🔈</span>
+      <span id="winClock">12:00 PM</span>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       CONTROLADOR JAVASCRIPT CON CONTENIDO DEL MANUAL Y SINTETIZADOR XP
+       ========================================================================= -->
+  <script>
+    // --- ESTADO GLOBAL ---
+    let currentMode = 'vuln';
+    let hasPlayedStartup = false;
+
+    // --- CONTENIDO DEL MANUAL DE LABORATORIO INTEGRADO ---
+    const manualDocs = {
+      intro: `
+        <h2>1. Prerrequisitos e Inicialización del Laboratorio</h2>
+        <p>Bienvenido al <strong>Taller Universitario de Seguridad Web de la UNSL</strong>. Este entorno emula una infraestructura de producción vulnerable basada en <strong>Spring Boot 3.x</strong> y <strong>Java 17</strong>, empaquetada en contenedores Docker para ejercicios de tipo <em>Purple Team</em> (Detección de vulnerabilidades y verificación de parches).</p>
+
+        <h3>Despliegue con Docker Compose</h3>
+        <p>Abra una terminal en la raíz del proyecto y ejecute:</p>
+        <pre><code><span class="hl-com"># 1. Construir la imagen y levantar el contenedor en segundo plano</span>
+docker compose up --build -d
+
+<span class="hl-com"># 2. Verificar el estado de salud del servicio (Healthcheck)</span>
+docker compose ps</code></pre>
+        <p>Una vez iniciado, acceda desde su navegador a <code>http://localhost:8080</code>.</p>
+
+        <h3>Estructura del Proyecto</h3>
+        <ul>
+          <li><code>edu.unsl.ciberlab.controller.UserController</code>: Módulo 1 (CWE-89 SQLi).</li>
+          <li><code>edu.unsl.ciberlab.controller.ProfileController</code>: Módulo 2 (CWE-79 XSS Reflejado).</li>
+          <li><code>edu.unsl.ciberlab.controller.FileController</code>: Módulo 3 (CWE-22 Path Traversal).</li>
+          <li><code>/app/storage/public/</code>: Directorio público para descargas.</li>
+          <li><code>/app/storage/confidential/flag.txt</code>: Archivo sensible objetivo de exfiltración.</li>
+        </ul>
+      `,
+
+      cwe89: `
+        <h2>2. Módulo 1: CWE-89 (SQL Injection en H2 Database)</h2>
+        <p>La inyección SQL ocurre cuando los datos de entrada no confiables se concatenan directamente dentro del comando SQL enviado al intérprete de la base de datos, alterando su estructura sintáctica.</p>
+
+        <h3>Auditoría de Código (Causa Raíz)</h3>
+        <p>Ubique en <code>UserController.java</code> la siguiente concatenación insegura:</p>
+        <pre><code><span class="hl-sec">// VULNERABLE: El parámetro 'username' rompe la estructura del comando</span>
+<span class="hl-kw">String</span> sql = <span class="hl-str">"SELECT * FROM users WHERE username = '"</span> + username + <span class="hl-str">"'"</span>;
+<span class="hl-kw">ResultSet</span> rs = stmt.executeQuery(sql); <span class="hl-com">// Parser SQL interpreta datos como código</span></code></pre>
+
+        <h3>Pruebas de Ataque Red Team</h3>
+        <p>Ingrese los siguientes payloads en la ventana <strong>Directorio UNSL.exe</strong>:</p>
+        <ul>
+          <li><strong>Bypass de consulta:</strong> <code>' OR '1'='1</code> (Devuelve todos los usuarios del sistema).</li>
+          <li><strong>Comentario de fin de línea:</strong> <code>admin' --</code></li>
+          <li><strong>Inyección UNION:</strong> <code>' UNION SELECT 99, 'Hacker', 'ROLE_ADMIN', 'password_extraida', '123-45-6789' --</code></li>
+        </ul>
+
+        <h3>Guía de Remediación Blue Team</h3>
+        <p>Reemplace la consulta dinámica por una sentencia parametrizada con <code>PreparedStatement</code>:</p>
+        <pre><code><span class="hl-kw">String</span> sql = <span class="hl-str">"SELECT id, username, role FROM users WHERE username = ?"</span>;
+<span class="hl-kw">try</span> (<span class="hl-kw">PreparedStatement</span> ps = conn.prepareStatement(sql)) {
+    ps.setString(1, username); <span class="hl-com">// El parser H2 trata el valor como dato literal, no como código</span>
+    <span class="hl-kw">try</span> (<span class="hl-kw">ResultSet</span> rs = ps.executeQuery()) {
+        <span class="hl-com">// Mapear resultados con proyección de menor privilegio...</span>
+    }
+}</code></pre>
+      `,
+
+      cwe79: `
+        <h2>3. Módulo 2: CWE-79 (Cross-Site Scripting Reflejado)</h2>
+        <p>El XSS reflejado ocurre cuando una aplicación web recibe datos en una petición HTTP y los incluye de inmediato en la respuesta HTML sin sanitización ni codificación contextual.</p>
+
+        <h3>Auditoría de Código (Causa Raíz)</h3>
+        <p>Ubique en <code>ProfileController.java</code> la respuesta HTML cruda:</p>
+        <pre><code><span class="hl-sec">// VULNERABLE: Interpolación de 'name' directamente en el cuerpo HTML</span>
+<span class="hl-kw">String</span> html = <span class="hl-str">"&lt;html&gt;&lt;body&gt;&lt;h1&gt;Bienvenido, "</span> + name + <span class="hl-str">"!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;"</span>;
+<span class="hl-kw">return</span> ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);</code></pre>
+
+        <h3>Pruebas de Ataque Red Team</h3>
+        <p>Ingrese los siguientes vectores en la ventana <strong>Credencial.exe</strong>:</p>
+        <ul>
+          <li><code>&lt;script&gt;alert('XSS_UNSL')&lt;/script&gt;</code></li>
+          <li><code>&lt;img src=x onerror="alert('XSS_IMAGE_TRIGGERED')"&gt;</code></li>
+          <li><code>&lt;h1 style="color:red;"&gt;SITIO DEFACED&lt;/h1&gt;</code></li>
+        </ul>
+
+        <h3>Guía de Remediación Blue Team</h3>
+        <p>Aplique codificación de entidades HTML con la librería <strong>OWASP Java Encoder</strong> y agregue la cabecera <strong>Content-Security-Policy</strong>:</p>
+        <pre><code><span class="hl-com">// 1. Codificación contextual OWASP</span>
+<span class="hl-kw">String</span> safeName = org.owasp.encoder.Encode.forHtml(name);
+
+<span class="hl-com">// 2. Cabecera defensiva CSP</span>
+<span class="hl-kw">return</span> ResponseEntity.ok()
+    .header(<span class="hl-str">"Content-Security-Policy"</span>, <span class="hl-str">"default-src 'self'; script-src 'none'; style-src 'unsafe-inline';"</span>)
+    .contentType(MediaType.TEXT_HTML)
+    .body(<span class="hl-str">"&lt;h1&gt;Bienvenido, "</span> + safeName + <span class="hl-str">"!&lt;/h1&gt;"</span>);</code></pre>
+      `,
+
+      cwe22: `
+        <h2>4. Módulo 3: CWE-22 (Path Traversal / Salto de Directorio)</h2>
+        <p>Ocurre cuando la aplicación utiliza entradas del usuario para construir rutas en el sistema de archivos sin neutralizar secuencias especiales como <code>../</code>, permitiendo acceder a archivos confidenciales del servidor.</p>
+
+        <h3>Auditoría de Código (Causa Raíz)</h3>
+        <p>Ubique en <code>FileController.java</code> la resolución directa:</p>
+        <pre><code><span class="hl-sec">// VULNERABLE: No se valida si el archivo resuelto queda dentro de 'baseDir'</span>
+<span class="hl-kw">File</span> file = <span class="hl-kw">new</span> <span class="hl-kw">File</span>(baseDir, filename);
+<span class="hl-kw">byte</span>[] content = Files.readAllBytes(file.toPath());</code></pre>
+
+        <h3>Pruebas de Ataque Red Team</h3>
+        <p>Solicite el siguiente archivo desde la ventana <strong>Explorador.exe</strong>:</p>
+        <pre><code>../confidential/flag.txt</code></pre>
+        <p>Al tener éxito, obtendrá la bandera de auditoría:</p>
+        <pre><code><span class="hl-str" style="font-weight:bold;">FLAG{UNSL_PURPLE_TEAM_PATH_TRAVERSAL_MASTERED_2026}</span></code></pre>
+
+        <h3>Guía de Remediación Blue Team</h3>
+        <p>Normalice la ruta con <code>java.nio.file.Path</code> y verifique pertenencia estricta mediante <code>startsWith()</code>:</p>
+        <pre><code><span class="hl-kw">Path</span> basePath = Paths.get(baseDir).toRealPath();
+<span class="hl-kw">Path</span> targetPath = basePath.resolve(filename).normalize();
+
+<span class="hl-com">// Control de límites estricto: la ruta debe iniciar con el directorio base canónico</span>
+<span class="hl-kw">if</span> (!targetPath.startsWith(basePath)) {
+    <span class="hl-kw">throw new</span> <span class="hl-kw">SecurityException</span>(<span class="hl-str">"Intento de Path Traversal bloqueado."</span>);
+}</code></pre>
+      `,
+
+      verif: `
+        <h2>5. Verificación Final y Recompilación</h2>
+        <p>Una vez completadas las correcciones en el código fuente, valide su implementación ejecutando la suite de pruebas automatizadas:</p>
+        <pre><code>mvn test</code></pre>
+        <p>La clase <code>CiberlabSecurityTests</code> confirmará que los 6 tests (3 de explotación y 3 de mitigación) pasen satisfactoriamente.</p>
+
+        <h3>Reconstrucción del Contenedor</h3>
+        <pre><code>docker compose up --build -d</code></pre>
+        <p>Abra nuevamente la aplicación y verifique en el <strong>Panel Purple Team</strong> que todos los ataques sean neutralizados de forma definitiva.</p>
+      `
+    };
+
+    function loadManualSection(sectionKey) {
+      playXpClick();
+      const content = manualDocs[sectionKey] || '<p>Sección no encontrada.</p>';
+      const docArea = document.getElementById('manualContentArea');
+      docArea.innerHTML = content;
+      docArea.scrollTop = 0; // RESETEAR SCROLL AL INICIO DEL TEMA
+
+      document.querySelectorAll('.help-toc-item').forEach(el => el.classList.remove('active'));
+      const activeToc = document.getElementById(`toc-${sectionKey}`);
+      if (activeToc) activeToc.classList.add('active');
+    }
+
+    // --- SINTETIZADOR DE SONIDOS WINDOWS XP (WEB AUDIO API) ---
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function handleUserFirstClick() {
+      if (!hasPlayedStartup) {
+        hasPlayedStartup = true;
+        playXpStartup();
+      }
+    }
+
+    // Chime icónico de Inicio de Windows XP
+    function playXpStartup() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        // Progresión armónica de pads y campanas nostálgicas de Windows XP
+        const notes = [
+          { f: 185.00, t: 0.00, d: 2.2, v: 0.08, type: 'triangle' }, // F#3
+          { f: 277.18, t: 0.00, d: 2.0, v: 0.08, type: 'sine' },     // C#4
+          { f: 466.16, t: 0.18, d: 1.4, v: 0.12, type: 'sine' },     // A#4
+          { f: 554.37, t: 0.40, d: 1.2, v: 0.14, type: 'sine' },     // C#5
+          { f: 415.30, t: 0.65, d: 1.4, v: 0.12, type: 'sine' },     // G#4
+          { f: 277.18, t: 0.90, d: 1.6, v: 0.10, type: 'triangle' }, // C#4
+          { f: 698.46, t: 1.15, d: 2.0, v: 0.15, type: 'sine' },     // F5 (Chime culminante)
+          { f: 830.61, t: 1.18, d: 2.2, v: 0.12, type: 'sine' },     // G#5
+          { f: 1108.73,t: 1.22, d: 1.8, v: 0.08, type: 'sine' }      // C#6
+        ];
+
+        notes.forEach(n => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = n.type;
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+
+          gain.gain.setValueAtTime(0.001, now + n.t);
+          gain.gain.linearRampToValueAtTime(n.v, now + n.t + 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + n.t + n.d);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d);
+        });
+      } catch(e) {}
+    }
+
+    // Sonido sutil de clic de navegación XP
+    function playXpClick() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1400, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.02);
+
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.02);
+      } catch(e) {}
+    }
+
+    // Sonido de campana / alerta de Windows XP (Ding)
+    function playXpDing() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const chord = [523.25, 659.25, 783.99]; // C - E - G bell
+        chord.forEach(f => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now);
+
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        });
+      } catch(e) {}
+    }
+
+    // Sonido de globo informativo de notificación XP
+    function playXpBalloon() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const tones = [
+          { f: 587.33, t: 0.00, d: 0.1 },
+          { f: 880.00, t: 0.08, d: 0.25 }
+        ];
+        tones.forEach(tone => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(tone.f, now + tone.t);
+
+          gain.gain.setValueAtTime(0.08, now + tone.t);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + tone.t + tone.d);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + tone.t);
+          osc.stop(now + tone.t + tone.d);
+        });
+      } catch(e) {}
+    }
+
+    // --- RELOJ DIGITAL EN VIVO ---
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      document.getElementById('winClock').textContent = `${hours}:${minutes} ${ampm}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- TECLA F1 ABRE EL MANUAL ---
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        openWindow('win-manual');
+      }
+    });
+
+    // --- MENÚ INICIO WINDOWS XP ---
+    function toggleStartMenu() {
+      playXpClick();
+      const menu = document.getElementById('startMenu');
+      const btn = document.getElementById('startBtn');
+      menu.classList.toggle('open');
+      btn.classList.toggle('active');
+    }
+
+    function handleDesktopClick(e) {
+      const menu = document.getElementById('startMenu');
+      const btn = document.getElementById('startBtn');
+      if (menu.classList.contains('open') && !e.target.closest('#startBtn') && !e.target.closest('#startMenu')) {
+        menu.classList.remove('open');
+        btn.classList.remove('active');
+      }
+    }
+
+    // --- GESTIÓN DE VENTANAS ARRASTRABLES (DRAG AND DROP) ---
+    let highestZ = 100;
+    let activeDrag = null;
+
+    function bringToFront(winId) {
+      highestZ++;
+      const win = document.getElementById(winId);
+      if (win) {
+        win.style.zIndex = highestZ;
+        document.querySelectorAll('.draggable-window').forEach(w => w.classList.remove('active'));
+        win.classList.add('active');
+      }
+      updateTaskbar();
+    }
+
+    function startDrag(e, winId) {
+      if (e.target.tagName === 'BUTTON') return;
+      bringToFront(winId);
+      const win = document.getElementById(winId);
+      if (win.classList.contains('maximized')) return;
+
+      const rect = win.getBoundingClientRect();
+      activeDrag = {
+        element: win,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top
+      };
+
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', stopDrag);
+    }
+
+    function onDrag(e) {
+      if (!activeDrag) return;
+      const x = Math.max(0, Math.min(window.innerWidth - 60, e.clientX - activeDrag.offsetX));
+      const y = Math.max(0, Math.min(window.innerHeight - 60, e.clientY - activeDrag.offsetY));
+      activeDrag.element.style.left = x + 'px';
+      activeDrag.element.style.top = y + 'px';
+    }
+
+    function stopDrag() {
+      activeDrag = null;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    function openWindow(winId) {
+      playXpClick();
+      const win = document.getElementById(winId);
+      if (win) {
+        win.classList.remove('minimized');
+        bringToFront(winId);
+      }
+    }
+
+    function closeWindow(winId) {
+      playXpClick();
+      const win = document.getElementById(winId);
+      if (win) win.classList.add('minimized');
+      updateTaskbar();
+    }
+
+    function minimizeWindow(winId) {
+      playXpClick();
+      const win = document.getElementById(winId);
+      if (win) win.classList.add('minimized');
+      updateTaskbar();
+    }
+
+    function toggleMaximize(winId) {
+      playXpClick();
+      const win = document.getElementById(winId);
+      if (win) win.classList.toggle('maximized');
+    }
+
+    // --- ACTUALIZACIÓN DE BARRA DE TAREAS WINDOWS XP ---
+    const windowMeta = {
+      'win-manual': { title: 'Ayuda y Soporte (F1)', icon: '📖' },
+      'win-directorio': { title: 'Directorio UNSL', icon: '👥' },
+      'win-perfil': { title: 'Credencial Digital', icon: '🪪' },
+      'win-documentos': { title: 'Explorador Archivos', icon: '📁' },
+      'win-dos': { title: 'MS-DOS Prompt', icon: '💻' },
+      'win-panel': { title: 'Panel Purple Team', icon: '⚙️' }
+    };
+
+    function updateTaskbar() {
+      const container = document.getElementById('taskbarApps');
+      container.innerHTML = '';
+
+      Object.keys(windowMeta).forEach(winId => {
+        const win = document.getElementById(winId);
+        if (!win || win.classList.contains('minimized')) return;
+
+        const meta = windowMeta[winId];
+        const btn = document.createElement('div');
+        btn.className = 'task-button';
+        if (win.classList.contains('active')) btn.classList.add('active');
+
+        btn.innerHTML = `<span>${meta.icon}</span> <span>${meta.title}</span>`;
+        btn.onclick = () => {
+          if (win.classList.contains('active')) {
+            minimizeWindow(winId);
+          } else {
+            openWindow(winId);
+          }
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // --- VISOR DE CÓDIGO FUENTE (ACORDEÓN) ---
+    function toggleSourceCode(id) {
+      playXpClick();
+      const el = document.getElementById(id);
+      if (el) el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+    }
+
+    // --- PANEL DEVSECOPS: CONMUTADOR DE MODO ---
+    function toggleGlobalMode() {
+      currentMode = (currentMode === 'vuln') ? 'safe' : 'vuln';
+      playXpBalloon();
+
+      const btn = document.getElementById('btnToggleMode');
+      const lbl = document.getElementById('lblModeStatus');
+      const det = document.getElementById('lblModeDetails');
+      const bar = document.getElementById('lblGlobalModeBar');
+      const tray = document.getElementById('trayMode');
+
+      const sSqli = document.getElementById('modSqliStatus');
+      const sXss = document.getElementById('modXssStatus');
+      const sFile = document.getElementById('modFileStatus');
+
+      if (currentMode === 'safe') {
+        btn.textContent = 'ACTIVAR MODO VULNERABLE';
+        lbl.textContent = 'ESTADO ACTUAL: MODO REMEDIADO (SEGURO)';
+        lbl.style.color = '#007700';
+        det.textContent = 'Defensas activas: PreparedStatement, Encode.forHtml, Content-Security-Policy y Path.startsWith().';
+        bar.textContent = 'MODO ACTUAL: SEGURO (PURPLE TEAM DEFENDIDO)';
+        tray.textContent = 'SAFE';
+        tray.style.color = '#76e275';
+
+        sSqli.textContent = 'REMEDIADO (PreparedStatement activo)';
+        sSqli.style.color = '#008800';
+        sXss.textContent = 'REMEDIADO (OWASP Encoder + CSP)';
+        sXss.style.color = '#008800';
+        sFile.textContent = 'REMEDIADO (Path.normalize + startsWith)';
+        sFile.style.color = '#008800';
+
+        logDos('[DEFENSA] Servidor conmutado a MODO REMEDIADO (Defensas Blue Team activadas).');
+      } else {
+        btn.textContent = 'ACTIVAR MODO SEGURO';
+        lbl.textContent = 'ESTADO ACTUAL: MODO VULNERABLE';
+        lbl.style.color = '#c00000';
+        det.textContent = 'Endpoints ejecutan sentencias concatenadas, HTML crudo y rutas directas.';
+        bar.textContent = 'MODO ACTUAL: VULNERABLE';
+        tray.textContent = 'VULN';
+        tray.style.color = '#ffcc00';
+
+        sSqli.textContent = 'VULNERABLE (Concatenación activa)';
+        sSqli.style.color = 'red';
+        sXss.textContent = 'VULNERABLE (HTML crudo sin CSP)';
+        sXss.style.color = 'red';
+        sFile.textContent = 'VULNERABLE (Escape ../ habilitado)';
+        sFile.style.color = 'red';
+
+        logDos('[CONFIG] Servidor conmutado a MODO VULNERABLE (Para ejercicios de laboratorio).');
+      }
+
+      executeUserSearch();
+      executeProfileGreet();
+      executeFileDownload();
+    }
+
+    function logDos(msg) {
+      const el = document.getElementById('dosOutput');
+      el.textContent += '\n' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // --- MÓDULO 1: SQLi ---
+    function setQuery(q) {
+      document.getElementById('txtSqliUser').value = q;
+      executeUserSearch();
+    }
+
+    async function executeUserSearch(e) {
+      if (e) e.preventDefault();
+      playXpClick();
+      const user = document.getElementById('txtSqliUser').value.trim();
+      const tbody = document.getElementById('tblUsersBody');
+      const lblSql = document.getElementById('lblSqlExecuted');
+
+      try {
+        const res = await fetch(`/api/users/search?username=${encodeURIComponent(user)}&mode=${currentMode}`);
+        const data = await res.json();
+
+        lblSql.textContent = data.executedQuery || '-';
+        logDos(`[SQL H2] Query: ${data.executedQuery}`);
+
+        tbody.innerHTML = '';
+        if (data.status === 'SUCCESS' && data.users && data.users.length > 0) {
+          data.users.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${u.id}</td>
+              <td><strong>${escapeHtml(u.username)}</strong></td>
+              <td>${escapeHtml(u.role || 'USER')}</td>
+              <td>${u.password ? `<span style="color:red; font-weight:bold;">🚨 ${escapeHtml(u.password)}</span>` : '<span style="color:gray;">[Protegido]</span>'}</td>
+              <td>${u.ssn ? `<span style="color:red; font-weight:bold;">🚨 ${escapeHtml(u.ssn)}</span>` : '<span style="color:gray;">[Protegido]</span>'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else if (data.status === 'SUCCESS') {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray;">0 usuarios encontrados. Inyección neutralizada.</td></tr>`;
+        } else {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error del parser: ${escapeHtml(data.errorMessage)}</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error de red: ${err.message}</td></tr>`;
+      }
+    }
+
+    // --- MÓDULO 2: XSS ---
+    function setNameInput(n) {
+      document.getElementById('txtXssName').value = n;
+      executeProfileGreet();
+    }
+
+    async function executeProfileGreet(e) {
+      if (e) e.preventDefault();
+      playXpClick();
+      const name = document.getElementById('txtXssName').value;
+      const iframe = document.getElementById('iframeXss');
+      const lblCsp = document.getElementById('lblXssCsp');
+
+      try {
+        const res = await fetch(`/api/profile/greet?name=${encodeURIComponent(name)}&mode=${currentMode}`);
+        const html = await res.text();
+        const csp = res.headers.get('Content-Security-Policy') || '[NO CONFIGURADA]';
+
+        lblCsp.textContent = csp;
+        lblCsp.style.color = currentMode === 'safe' ? 'green' : 'red';
+        logDos(`[HTTP GREET] Respuesta generada. CSP: ${csp}`);
+        iframe.srcdoc = html;
+      } catch (err) {
+        iframe.srcdoc = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    }
+
+    // --- MÓDULO 3: PATH TRAVERSAL ---
+    function setFileTarget(f) {
+      document.getElementById('txtFile').value = f;
+      executeFileDownload();
+    }
+
+    async function executeFileDownload(e) {
+      if (e) e.preventDefault();
+      playXpClick();
+      const filename = document.getElementById('txtFile').value.trim();
+      const pre = document.getElementById('preFileResult');
+      const lblBase = document.getElementById('lblBase');
+      const lblResolved = document.getElementById('lblResolved');
+      const lblBounds = document.getElementById('lblBounds');
+      const lblFileStatus = document.getElementById('lblFileStatus');
+
+      try {
+        const res = await fetch(`/api/files/download?filename=${encodeURIComponent(filename)}&mode=${currentMode}`);
+        const base = res.headers.get('X-PurpleTeam-Base-Dir') || '-';
+        const resolved = res.headers.get('X-PurpleTeam-Resolved-Path') || '-';
+
+        lblBase.textContent = base;
+        lblResolved.textContent = resolved;
+
+        if (res.status === 200) {
+          const content = await res.text();
+          pre.textContent = content;
+
+          if (content.includes('FLAG{')) {
+            playXpDing();
+            lblBounds.textContent = '❌ ESCAPE EXITOSO (CONFIDENCIAL OBTENIDO)';
+            lblBounds.style.color = 'red';
+            lblFileStatus.textContent = '🚨 VULNERABILIDAD CWE-22 EXPLOTADA';
+            logDos(`[ALERTA CWE-22] Bandera obtenida: ${filename}`);
+          } else {
+            lblBounds.textContent = '✓ DENTRO DE LÍMITES AUTORIZADOS';
+            lblBounds.style.color = 'green';
+            lblFileStatus.textContent = 'Archivo Público Descargado';
+            logDos(`[FILE POSIX] Descarga exitosa: ${filename}`);
+          }
+        } else if (res.status === 403) {
+          const jsonErr = await res.json();
+          pre.textContent = `[HTTP 403 FORBIDDEN - ACCESO DENEGADO]\n\n${jsonErr.securityReason}\nRegla: ${jsonErr.remediationRule}`;
+          lblBounds.textContent = '✓ BLOQUEADO POR targetPath.startsWith(baseDir)';
+          lblBounds.style.color = 'green';
+          lblFileStatus.textContent = 'Acceso Denegado por Seguridad';
+          logDos(`[DEFENSA CWE-22] Escape bloqueado: ${filename}`);
+        } else {
+          pre.textContent = await res.text();
+          lblBounds.textContent = 'No encontrado';
+          lblFileStatus.textContent = `HTTP ${res.status}`;
+        }
+      } catch (err) {
+        pre.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Inicialización al arrancar Windows XP
+    window.addEventListener('DOMContentLoaded', () => {
+      loadManualSection('intro');
+      openWindow('win-manual');
+      updateTaskbar();
+      executeUserSearch();
+      executeProfileGreet();
+      executeFileDownload();
+    });
+  </script>
+</body>
+</html>

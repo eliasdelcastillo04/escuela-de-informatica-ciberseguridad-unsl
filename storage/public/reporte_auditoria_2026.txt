@@ -1,0 +1,13 @@
+==============================================================
+UNIVERSIDAD NACIONAL DE SAN LUIS - REPORTE DE AUDITORÍA 2026
+==============================================================
+Fecha: 2026-11-03
+Estado General: OPERATIVO CON OBSERVACIONES
+Servidores Auditados: 12 nodos
+Vulnerabilidades Críticas Detectadas: 3 (En proceso de remediación didáctica)
+
+Resumen:
+- El servidor web expone endpoints de laboratorio para entrenamiento en seguridad defensiva.
+- Se recomienda a los administradores no almacenar credenciales en texto plano.
+- Todos los servicios deben restringir el acceso al directorio confidencial.
+==============================================================

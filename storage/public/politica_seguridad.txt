@@ -1,0 +1,17 @@
+==============================================================
+POLÍTICA DE SEGURIDAD DE LA INFORMACIÓN - LABORATORIO WEB
+==============================================================
+1. Principio de Mínimo Privilegio:
+   Ningún usuario debe tener acceso a recursos que excedan sus tareas asignadas.
+
+2. Separación de Planos de Control y Datos:
+   Toda consulta a base de datos debe utilizar sentencias parametrizadas (PreparedStatement)
+   para evitar que la entrada de usuario altere la gramática SQL.
+
+3. Context-Aware Encoding:
+   Todo dato no confiable renderizado en el navegador debe ser codificado según el contexto (HTML, JS, CSS).
+
+4. Validación Canónica de Rutas:
+   Toda ruta de archivo resuelta dinámicamente debe ser normalizada y comprobada
+   contra el prefijo del directorio base seguro.
+==============================================================

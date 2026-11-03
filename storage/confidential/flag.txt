@@ -1,0 +1,4 @@
+FLAG{UNSL_PURPLE_TEAM_PATH_TRAVERSAL_MASTERED_2026}
+[CONFIDENCIAL] Acceso no autorizado a registros sensibles de la Universidad Nacional de San Luis.
+Si estás leyendo este archivo a través del endpoint web, has explotado exitosamente CWE-22 (Path Traversal).
+Proceder a la remediación inmediata en FileController.java aplicando java.nio.file.Path y startsWith().
