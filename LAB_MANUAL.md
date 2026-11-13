@@ -322,8 +322,9 @@ Una vez que hayas analizado y corregido el código en tus archivos locales de Ja
 ### 5.1. Ejecución de Pruebas Unitarias Automatizadas
 En tu terminal local ejecuta:
 ```bash
-mvn test
+./mvnw test
 ```
+(O con Maven instalado globalmente: `mvn test`).
 Todas las 6 pruebas de seguridad del conjunto `CiberlabSecurityTests` deben finalizar con éxito (`BUILD SUCCESS`).
 
 ### 5.2. Recompilación del Contenedor Docker

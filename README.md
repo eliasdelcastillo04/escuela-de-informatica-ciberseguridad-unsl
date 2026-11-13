@@ -28,6 +28,38 @@ docker compose down
 
 ---
 
+## 💻 Ejecución Nativa en Ubuntu / Linux (Sin Docker)
+
+Si prefieres ejecutar el proyecto directamente en tu sistema Ubuntu con **Java 17+**:
+
+### 1. Prerrequisitos en Ubuntu
+```bash
+sudo apt update
+sudo apt install -y openjdk-17-jdk
+```
+
+### 2. Ejecutar la Aplicación Web con `java -jar`
+Empaqueta el ejecutable y levanta la aplicación:
+```bash
+# Compilar y empaquetar el JAR
+./mvnw clean package -DskipTests
+
+# Iniciar la aplicación con el comando java
+java -jar target/laboratorio-seguridad-web-1.0.0-SNAPSHOT.jar
+```
+La aplicación estará disponible en [http://localhost:8080](http://localhost:8080).
+
+### 3. Ejecutar las Pruebas de Seguridad Automatizadas
+```bash
+# Ejecutar todas las pruebas de seguridad con Maven Wrapper
+./mvnw test
+
+# O ejecutar únicamente la clase de test de seguridad
+./mvnw test -Dtest=CiberlabSecurityTests
+```
+
+---
+
 ## 🛠️ Estructura del Repositorio
 
 - `Dockerfile`: Configuración multi-stage sin privilegios (usuario `appuser`).
