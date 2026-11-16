@@ -60,19 +60,33 @@ La aplicación estará disponible en [http://localhost:8080](http://localhost:80
 
 ---
 
+## ✨ Características Principales del Laboratorio
+
+- **Intranet Retro Universitaria (Edición 2003)** dentro de un escritorio **Windows XP Luna**: Se abre automáticamente en Internet Explorer 6.0 con banners ASCII, diagramas Unicode y tipografía de alto contraste (`#0d1117` con texto verde fósforo y ámbar).
+- **Progresión Incremental por Fases y Módulos**:
+  - Desbloqueo secuencial: **Módulo 1 (CWE-89 SQLi)** ➔ **Módulo 2 (CWE-79 XSS)** ➔ **Módulo 3 (CWE-22 Path Traversal)** (con opción de **Modo Docente** para desbloqueo libre).
+  - 4 Fases guiadas por módulo: `1. Teoría & AST/DOM` ➔ `2. Ataque Red Team` ➔ `3. Telemetría de Servidor` ➔ `4. Remediación Blue Team`.
+- **Sistema CTF Integrado (`/api/ctf`)**: 6 retos oficiales (3 Red Team + 3 Blue Team), validador de banderas `FLAG{...}` desde la UI o desde la terminal MS-DOS (`submit <flag>`), y persistencia automática en el navegador.
+- **Terminal MS-DOS Interactiva**: Soporta comandos reales como `ctf`, `submit <FLAG>`, `cat <archivo>`, `curl <endpoint>`, `unlock`, `help`, `cls`.
+
+---
+
 ## 🛠️ Estructura del Repositorio
 
-- `Dockerfile`: Configuración multi-stage sin privilegios (usuario `appuser`).
+- `.github/workflows/ci.yml`: Workflow de GitHub Actions para compilación y pruebas automatizadas de seguridad.
+- `Dockerfile`: Configuración multi-stage sin privilegios (usuario `ciberlab`).
 - `docker-compose.yml`: Despliegue con límites de recursos (CPU y RAM).
-- `pom.xml`: Configuración Maven, Spring Boot y dependencias de seguridad (OWASP Java HTML Sanitizer / Encoder).
+- `pom.xml`: Configuración Maven, Spring Boot 3.3.5 y dependencias de seguridad (`org.owasp.encoder`).
 - `storage/`: Directorio de archivos simulados para pruebas de Path Traversal (`public/` y `confidential/`).
-- `src/main/`: Código fuente de la aplicación, controladores vulnerables/seguros y frontend interactivo.
-- `src/test/`: Suite de pruebas unitarias y de integración de seguridad.
+- `src/main/java/edu/unsl/ciberlab/controller/`: Controladores de los 3 módulos (`UserController`, `ProfileController`, `FileController`) y motor CTF (`CtfController`).
+- `src/main/resources/static/index.html`: Escritorio Windows XP + Intranet Retro UNSL 2000s + Terminal MS-DOS + CTF Tracker.
+- `src/test/`: Suite de 8 pruebas unitarias y de integración de seguridad (`CiberlabSecurityTests`).
 - [LAB_MANUAL.md](LAB_MANUAL.md): **Manual completo de laboratorio** con guía paso a paso de explotación, telemetría y remediación.
 
 ---
 
 ## 📖 Manual de Ejercicios
 
-Consulta la guía completa de actividades en:
+Consulta la guía completa de actividades y dinámica CTF en:
 👉 **[LAB_MANUAL.md](LAB_MANUAL.md)**
+

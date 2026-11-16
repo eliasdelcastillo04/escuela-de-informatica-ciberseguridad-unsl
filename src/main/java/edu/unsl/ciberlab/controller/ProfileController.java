@@ -86,6 +86,10 @@ public class ProfileController {
         headers.set("X-PurpleTeam-Mode", "VULNERABLE (CWE-79)");
         headers.set("X-PurpleTeam-Sanitization", "NONE");
         headers.set("X-PurpleTeam-CSP", "ABSENT");
+        String lowerName = name.toLowerCase();
+        if (lowerName.contains("<script") || lowerName.contains("onerror") || lowerName.contains("onload") || lowerName.contains("<svg") || lowerName.contains("<img")) {
+            headers.set("X-PurpleTeam-Red-Flag", "FLAG{UNSL_XSS_DOM_INJECTION_ALERT_2026}");
+        }
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -156,6 +160,7 @@ public class ProfileController {
         headers.set("X-PurpleTeam-Mode", "REMEDIATED (CWE-79 Mitigated)");
         headers.set("X-PurpleTeam-Sanitization", "OWASP Encode.forHtml");
         headers.set("X-PurpleTeam-CSP", "default-src 'self'; script-src 'none'; object-src 'none'");
+        headers.set("X-PurpleTeam-Blue-Flag", "FLAG{UNSL_CSP_CONTEXTUAL_ENCODING_2026}");
 
         return ResponseEntity.ok()
                 .headers(headers)

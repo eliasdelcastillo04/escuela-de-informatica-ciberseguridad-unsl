@@ -1,0 +1,32 @@
+name: CI - Laboratorio de Ciberseguridad UNSL
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-security-tests:
+    name: Compilación y Tests de Seguridad (Java 17)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Asignar permisos de ejecución a Maven Wrapper
+        run: chmod +x ./mvnw
+
+      - name: Ejecutar Suite de Pruebas de Seguridad Purple Team
+        run: ./mvnw clean test
+
+      - name: Empaquetar artefacto JAR
+        run: ./mvnw package -DskipTests

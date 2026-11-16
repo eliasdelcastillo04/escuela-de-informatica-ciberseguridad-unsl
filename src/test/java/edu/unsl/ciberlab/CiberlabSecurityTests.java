@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -142,5 +143,46 @@ class CiberlabSecurityTests {
                 .andExpect(status().isOk())
                 .andExpect(header().string("X-PurpleTeam-Access-Allowed", "true"))
                 .andExpect(content().string(containsString("UNIVERSIDAD NACIONAL DE SAN LUIS")));
+    }
+
+    // =========================================================================
+    // TESTS MÓDULO CTF: Gamificación y Validación de Banderas
+    // =========================================================================
+
+    @Test
+    @DisplayName("CTF Engine: Listado de 6 retos sin exponer banderas y estado general")
+    void testCtfChallengesListAndStatus() throws Exception {
+        mockMvc.perform(get("/api/ctf/challenges")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalChallenges").value(6))
+                .andExpect(jsonPath("$.maxPoints").value(850))
+                .andExpect(jsonPath("$.challenges", hasSize(6)))
+                .andExpect(jsonPath("$.challenges[0].flag").doesNotExist());
+
+        mockMvc.perform(get("/api/ctf/status")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalModules").value(3));
+    }
+
+    @Test
+    @DisplayName("CTF Engine: Validación de bandera correcta (200 OK) y rechazo de bandera inválida (400 Bad Request)")
+    void testCtfFlagSubmission() throws Exception {
+        // Bandera válida
+        mockMvc.perform(post("/api/ctf/submit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"flag\": \"FLAG{UNSL_SQLI_AUTH_BYPASS_2026}\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valid").value(true))
+                .andExpect(jsonPath("$.challengeId").value("m1-red"))
+                .andExpect(jsonPath("$.points").value(100));
+
+        // Bandera inválida
+        mockMvc.perform(post("/api/ctf/submit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"flag\": \"FLAG{FAKE_FLAG_123}\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.valid").value(false));
     }
 }

@@ -194,11 +194,13 @@ public class FileController {
             blockedHeaders.set("X-PurpleTeam-Base-Dir", baseDir.toString());
             blockedHeaders.set("X-PurpleTeam-Resolved-Path", targetPath.toString());
             blockedHeaders.set("X-PurpleTeam-Access-Allowed", "false");
+            blockedHeaders.set("X-PurpleTeam-Blue-Flag", "FLAG{UNSL_CANONICAL_PATH_BOUNDARY_2026}");
 
             Map<String, Object> errorPayload = new HashMap<>();
             errorPayload.put("error", "ACCESO DENEGADO (CWE-22)");
             errorPayload.put("securityReason", "La ruta resuelta ('" + targetPath + "') intenta salir del directorio base permitido ('" + baseDir + "').");
             errorPayload.put("remediationRule", "targetPath.startsWith(baseDirectory) == false -> HTTP 403 Forbidden");
+            errorPayload.put("blueTeamFlag", "FLAG{UNSL_CANONICAL_PATH_BOUNDARY_2026}");
 
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .headers(blockedHeaders)

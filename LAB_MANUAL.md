@@ -355,4 +355,22 @@ Prueba los tres vectores anteriores mediante `curl`:
    *Resultado esperado*: Respuesta HTTP `403 Forbidden` denegando el acceso.
 
 ---
+
+## 6. Dinámica Incremental y Sistema CTF (Purple Team)
+
+El entorno cuenta con un **Sistema CTF Integrado** dentro de la **Intranet Retro UNSL (Internet Explorer)** y el **Centro de Seguridad & CTF Tracker**:
+
+### 6.1. Progresión Secuencial por Fases
+1. Cada módulo se divide en **4 Fases**: `Teoría & Diagrama ASCII` ➔ `Ataque Red Team` ➔ `Telemetría Servidor` ➔ `Remediación Blue Team`.
+2. Al completar tanto la bandera **Red Team** como la bandera **Blue Team** de un módulo, se desbloquea automáticamente el módulo siguiente (`Módulo 1 ➔ Módulo 2 ➔ Módulo 3`).
+3. Para uso docente o evaluación rápida, el botón **Modo Docente** en la barra superior de Internet Explorer (o el comando `unlock` en MS-DOS) desbloquea todos los módulos de inmediato.
+
+### 6.2. Uso de la Terminal MS-DOS Interactiva
+Desde el escritorio Windows XP abre **Símbolo del Sistema** y utiliza:
+- `ctf` — Muestra el avance actual (`[████░░░░░░]`) y el listado de retos.
+- `submit FLAG{...}` — Envía y valida una bandera capturada contra `/api/ctf/submit`.
+- `cat reporte_auditoria_2026.txt` — Lee archivos mediante `/api/files/download`.
+- `curl /api/ctf/status` — Consulta endpoints REST locales directamente.
+
+---
 ¡Felicitaciones! Has completado el ciclo completo **Purple Team**: identificar la causa raíz, explotar la vulnerabilidad en laboratorio, inspeccionar la telemetría del sistema, implementar la remediación en código Java y validar el endurecimiento final de la plataforma.

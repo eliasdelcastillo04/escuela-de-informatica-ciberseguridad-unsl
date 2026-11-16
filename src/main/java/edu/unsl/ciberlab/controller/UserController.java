@@ -88,6 +88,9 @@ public class UserController {
             response.put("executedQuery", sqlVulnerable);
             response.put("rowCount", userList.size());
             response.put("users", userList);
+            if (userList.size() > 1) {
+                response.put("redTeamFlag", "FLAG{UNSL_SQLI_AUTH_BYPASS_2026}");
+            }
 
             return ResponseEntity.ok(response);
 
@@ -160,6 +163,7 @@ public class UserController {
             response.put("executedQuery", sqlRemediated + " [Param 1 = '" + username + "']");
             response.put("rowCount", userList.size());
             response.put("users", userList);
+            response.put("blueTeamFlag", "FLAG{UNSL_PREPARED_STATEMENT_DEFENDER_2026}");
 
         } catch (SQLException e) {
             log.error("[Purple Team] Error SQL durante ejecución remediada: {}", e.getMessage());
