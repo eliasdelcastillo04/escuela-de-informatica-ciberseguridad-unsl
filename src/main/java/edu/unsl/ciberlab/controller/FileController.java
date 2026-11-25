@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,26 +24,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * MÓDULO 3: CWE-22 (Improper Limitation of a Pathname to a Restricted Directory - 'Path Traversal')
- *
- * Enfoque Purple Team:
- * - Red Team: Inyección de secuencias dot-dot-slash (../) para escapar del directorio público /public/
- *   y acceder a archivos restringidos en /confidential/ (e.g. flag.txt).
- * - Blue Team: Normalización canónica de rutas con java.nio.file.Path y verificación estricta de límites
- *   mediante targetPath.startsWith(baseDirectory).
+ * MÓDULO 1 (DÍA 1): CWE-22 (Path Traversal)
+ * - Red Team: Escape de /public/ hacia /confidential/ usando secuencias ../
+ * - Sandbox Multi-Estudiante: Incluso en modo vulnerable, confina la lectura a storage/ (≤ 64 KB)
+ *   para proteger el servidor compartido de la Sala de Máquinas.
+ * - Blue Team: Normalización canónica con Path.normalize() y validación estricta startsWith(baseDir).
  */
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
 
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
+    private static final long MAX_FILE_SIZE_BYTES = 65_536L; // 64 KB límite seguro en aula
 
     @Value("${app.storage.base-dir:/app/storage}")
     private String configuredBaseDir;
 
-    /**
-     * Resuelve la ruta base activa (/app/storage en Docker o ./storage en local).
-     */
     private Path getStorageRoot() {
         Path path = Paths.get(configuredBaseDir);
         if (Files.exists(path)) {
@@ -54,9 +48,6 @@ public class FileController {
         return Paths.get("./storage").toAbsolutePath().normalize();
     }
 
-    /**
-     * Endpoint para listar los archivos autorizados en el directorio público.
-     */
     @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> listPublicFiles() {
         Path publicDir = getStorageRoot().resolve("public").normalize();
@@ -85,11 +76,6 @@ public class FileController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Endpoint de descarga de archivos.
-     * Por defecto (mode="vuln") ejecuta la concatenación insegura que permite Path Traversal.
-     * Con mode="safe" ejecuta la validación con java.nio.file.Path.
-     */
     @GetMapping("/download")
     public ResponseEntity<?> downloadFile(
             @RequestParam(name = "filename", defaultValue = "") String filename,
@@ -103,40 +89,49 @@ public class FileController {
             return downloadFileRemediated(filename);
         }
 
-        // =========================================================================
-        // [VULNERABLE DIDÁCTICO] CWE-22: Concatenación directa de nombres de archivo
-        // =========================================================================
-        // CAUSA RAÍZ: new File(base, filename) concatena literalmente la ruta.
-        // Si el atacante envía: ../confidential/flag.txt
-        // El sistema operativo resuelve la ruta canónica fuera de 'public/', alcanzando 'confidential/'.
-        // No existe validación canónica de prefijo (startsWith).
-        // =========================================================================
+        Path storageRoot = getStorageRoot();
+        Path publicRoot = storageRoot.resolve("public").normalize();
+        Path targetPath = publicRoot.resolve(filename).normalize();
 
-        Path publicRoot = getStorageRoot().resolve("public");
-        File targetFile = new File(publicRoot.toFile(), filename);
+        // Confinamiento de seguridad multi-estudiante: permite escapar de /public/ hacia /confidential/
+        // para demostrar CWE-22, pero bloquea salir de storage/ hacia archivos del sistema operativo.
+        if (!targetPath.startsWith(storageRoot)) {
+            log.warn("[Sandbox CWE-22] Intento de salida fuera de storage/ bloqueado: {}", filename);
+            HttpHeaders sandboxHeaders = new HttpHeaders();
+            sandboxHeaders.set("X-PurpleTeam-Mode", "VULNERABLE (Sandbox Boundary)");
+            sandboxHeaders.set("X-PurpleTeam-Resolved-Path", targetPath.toString());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .headers(sandboxHeaders)
+                    .body("LÍMITE DE SANDBOX (Aula Compartida): El modo vulnerable permite escapar de /public/ hacia /confidential/ (ej. ../confidential/flag.txt), pero bloquea salir del directorio del laboratorio.");
+        }
 
-        log.warn("[Purple Team - ALERTA CWE-22] Intentando acceder a archivo mediante ruta vulnerable: {}", targetFile.getPath());
+        log.warn("[Purple Team - ALERTA CWE-22] Acceso en modo vulnerable a ruta: {}", targetPath);
 
-        if (!targetFile.exists() || !targetFile.isFile()) {
+        if (!Files.exists(targetPath) || !Files.isRegularFile(targetPath)) {
             HttpHeaders notFoundHeaders = new HttpHeaders();
             notFoundHeaders.set("X-PurpleTeam-Mode", "VULNERABLE (CWE-22)");
-            notFoundHeaders.set("X-PurpleTeam-Resolved-Path", targetFile.getAbsolutePath());
+            notFoundHeaders.set("X-PurpleTeam-Resolved-Path", targetPath.toString());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .headers(notFoundHeaders)
-                    .body("Archivo no encontrado: " + filename + " (Ruta buscada: " + targetFile.getAbsolutePath() + ")");
+                    .body("Archivo no encontrado: " + filename + " (Ruta buscada: " + targetPath + ")");
         }
 
         try {
-            byte[] fileBytes = Files.readAllBytes(targetFile.toPath());
+            if (Files.size(targetPath) > MAX_FILE_SIZE_BYTES) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                        .body("Archivo excede el límite permitido de 64 KB.");
+            }
+
+            byte[] fileBytes = Files.readAllBytes(targetPath);
             Resource resource = new ByteArrayResource(fileBytes);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.TEXT_PLAIN);
-            headers.setContentDispositionFormData("attachment", targetFile.getName());
+            headers.setContentDispositionFormData("attachment", targetPath.getFileName().toString());
             headers.set("X-PurpleTeam-Mode", "VULNERABLE (CWE-22)");
-            headers.set("X-PurpleTeam-Base-Dir", publicRoot.toAbsolutePath().toString());
-            headers.set("X-PurpleTeam-Resolved-Path", targetFile.getAbsolutePath());
-            headers.set("X-PurpleTeam-Traversal-Success", String.valueOf(!targetFile.getAbsolutePath().startsWith(publicRoot.toAbsolutePath().toString())));
+            headers.set("X-PurpleTeam-Base-Dir", publicRoot.toString());
+            headers.set("X-PurpleTeam-Resolved-Path", targetPath.toString());
+            headers.set("X-PurpleTeam-Traversal-Success", String.valueOf(!targetPath.startsWith(publicRoot)));
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -147,47 +142,16 @@ public class FileController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al leer el archivo solicitado: " + e.getMessage());
         }
-
-        /*
-         * =========================================================================
-         * [GUÍA DE REMEDIACIÓN PARA EL ESTUDIANTE]
-         * =========================================================================
-         * Para corregir esta vulnerabilidad:
-         * 1. Usa la API moderna java.nio.file.Path:
-         *    Path baseDir = getStorageRoot().resolve("public").toAbsolutePath().normalize();
-         *    Path targetPath = baseDir.resolve(filename).normalize();
-         *
-         * 2. Verifica canónicamente que la ruta resultante comience por el directorio base:
-         *    if (!targetPath.startsWith(baseDir)) {
-         *        // ¡Intento de escape de directorio detectado!
-         *        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-         *            .body("ALERTA DE SEGURIDAD (CWE-22): Acceso fuera del directorio autorizado denegado.");
-         *    }
-         *
-         * 3. Verifica que el archivo exista y sea regular:
-         *    if (!Files.exists(targetPath) || !Files.isRegularFile(targetPath)) {
-         *        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Archivo no encontrado.");
-         *    }
-         * =========================================================================
-         */
     }
 
-    /**
-     * Versión remediada: Aplica java.nio.file.Path, normalize() y validación estricta startsWith().
-     */
     public ResponseEntity<?> downloadFileRemediated(String filename) {
-        log.info("[Purple Team - REMEDIADO] Verificando ruta canónica con java.nio.file.Path.normalize() y startsWith()");
+        log.info("[Purple Team - REMEDIADO] Verificando ruta canónica con Path.normalize() y startsWith()");
 
-        // 1. Obtener la ruta base canónica normalizada
         Path baseDir = getStorageRoot().resolve("public").toAbsolutePath().normalize();
-
-        // 2. Resolver la ruta solicitada y normalizar (elimina secuencias ../ y ./)
         Path targetPath = baseDir.resolve(filename).normalize();
 
-        // 3. Verificación estricta de pertenencia al directorio base (defensa contra Path Traversal)
         if (!targetPath.startsWith(baseDir)) {
-            log.warn("[Purple Team - BLOQUEO CWE-22] Intento de Path Traversal bloqueado. Base: {} | Destino intentado: {}",
-                    baseDir, targetPath);
+            log.warn("[Purple Team - BLOQUEO CWE-22] Path Traversal bloqueado. Base: {} | Destino: {}", baseDir, targetPath);
 
             HttpHeaders blockedHeaders = new HttpHeaders();
             blockedHeaders.set("X-PurpleTeam-Mode", "REMEDIATED (CWE-22 Blocked)");
@@ -207,13 +171,17 @@ public class FileController {
                     .body(errorPayload);
         }
 
-        // 4. Verificación de existencia como archivo regular dentro del límite permitido
         if (!Files.exists(targetPath) || !Files.isRegularFile(targetPath)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Archivo no encontrado dentro del directorio público: " + filename);
         }
 
         try {
+            if (Files.size(targetPath) > MAX_FILE_SIZE_BYTES) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                        .body("Archivo excede el límite permitido de 64 KB.");
+            }
+
             byte[] fileBytes = Files.readAllBytes(targetPath);
             Resource resource = new ByteArrayResource(fileBytes);
 

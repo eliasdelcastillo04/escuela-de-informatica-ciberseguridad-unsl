@@ -26,32 +26,8 @@ WORKDIR /app
 # Crear usuario y grupo de sistema sin privilegios (Hardening de contenedor)
 RUN groupadd -r ciberlab && useradd -r -g ciberlab -s /sbin/nologin -d /app ciberlab
 
-# Crear estructura de almacenamiento de archivos para las pruebas didácticas
-RUN mkdir -p /app/storage/public /app/storage/confidential
-
-# Archivo 1 público: Reporte de auditoría
-RUN echo "==============================================================\n\
-UNIVERSIDAD NACIONAL DE SAN LUIS - REPORTE DE AUDITORÍA 2026\n\
-==============================================================\n\
-Fecha: 2026-11-03\n\
-Estado General: OPERATIVO CON OBSERVACIONES\n\
-Servidores Auditados: 12 nodos\n\
-Vulnerabilidades Críticas Detectadas: 3 (En proceso de remediación didáctica)\n\
-==============================================================" > /app/storage/public/reporte_auditoria_2026.txt
-
-# Archivo 2 público: Política de seguridad
-RUN echo "==============================================================\n\
-POLÍTICA DE SEGURIDAD DE LA INFORMACIÓN - LABORATORIO WEB\n\
-==============================================================\n\
-1. Separación de planos de control y datos en consultas SQL.\n\
-2. Codificación contextual para mitigar XSS.\n\
-3. Validación canónica de rutas con startsWith().\n\
-==============================================================" > /app/storage/public/politica_seguridad.txt
-
-# Archivo confidencial: Flag del ejercicio CWE-22 (fuera del directorio público)
-RUN echo "FLAG{UNSL_PURPLE_TEAM_PATH_TRAVERSAL_MASTERED_2026}\n\
-[CONFIDENCIAL] Acceso no autorizado a registros sensibles de la Universidad.\n\
-CWE-22 explotado con éxito. Remediación requerida en FileController.java." > /app/storage/confidential/flag.txt
+# Copiar archivos de almacenamiento didácticos completos (incluyendo pistas en confidential/flag.txt)
+COPY storage/ /app/storage/
 
 # Copiar el artefacto compilado desde la etapa builder
 COPY --from=builder /build/target/*.jar /app/app.jar

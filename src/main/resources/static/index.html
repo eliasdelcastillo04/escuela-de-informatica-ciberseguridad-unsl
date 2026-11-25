@@ -3,1831 +3,1746 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UNSL Windows XP - Intranet Retro & Laboratorio Purple Team (CWE-89, CWE-79, CWE-22)</title>
-
-  <!-- Framework XP.css para estética auténtica de Windows XP Luna -->
-  <link rel="stylesheet" href="https://unpkg.com/xp.css">
-
+  <title>SIU Guaraní - Laboratorio Seguridad Web | UNSL</title>
   <style>
-    /* ==========================================================================
-       ESCRITORIO WINDOWS XP LUNA + ALTA LEGIBILIDAD
-       ========================================================================== */
-    * {
-      box-sizing: border-box;
+    :root {
+      --siu-blue: #0093dc;
+      --siu-blue-dark: #0077b5;
+      --siu-bg: #ffffff;
+      --siu-surface: #f9fafb;
+      --siu-border: #e5e7eb;
+      --siu-text: #1f2937;
+      --siu-muted: #6b7280;
+      --siu-info-bg: #fcf8e3;
+      --siu-info-border: #faebcc;
+      --red-team: #e11d48;
+      --blue-team: #059669;
+      --amber: #d97706;
+      --font-sans: "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    html, body {
+    * { box-sizing: border-box; }
+
+    body {
       margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      font-family: Tahoma, 'Segoe UI', Arial, sans-serif;
-      font-size: 12px;
-      color: #111111;
+      padding: 0 0 64px 0;
+      background: var(--siu-bg);
+      color: var(--siu-text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
 
-    #desktop {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 32px;
-      background: #1f64df url('images/bliss.png') no-repeat center center fixed;
-      background-size: cover;
-      overflow: hidden;
-    }
-
-    /* Iconos del Escritorio */
-    .desktop-grid {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      max-height: calc(100% - 28px);
-      gap: 14px;
-      z-index: 1;
-    }
-
-    .desktop-icon {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 84px;
-      cursor: pointer;
-      text-align: center;
-      padding: 5px 4px;
-      border-radius: 4px;
-      transition: background 0.12s;
-      user-select: none;
-    }
-
-    .desktop-icon:hover {
-      background: rgba(11, 95, 255, 0.30);
-    }
-
-    .desktop-icon.selected {
-      background: rgba(11, 95, 255, 0.50);
-      border: 1px dotted rgba(255, 255, 255, 0.9);
-    }
-
-    .desktop-icon-img {
-      font-size: 32px;
-      margin-bottom: 3px;
-      filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.65));
-    }
-
-    .desktop-icon-title {
-      color: #ffffff !important;
-      font-size: 11px;
-      font-family: Tahoma, sans-serif;
-      padding: 2px 4px;
-      text-shadow: 1px 1px 2px #000, 0 0 4px #000;
-      line-height: 1.25;
-      font-weight: 500;
-    }
-
-    /* Ventanas flotantes Windows XP */
-    .draggable-window {
-      position: absolute;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), inset -1px -1px #00138c, inset 1px 1px #0831d9, inset -2px -2px #001ea0, inset 2px 2px #166aee;
-      background: #ece9d8;
-      padding: 0 0 3px 0;
-      display: flex;
-      flex-direction: column;
-      z-index: 10;
-      overflow: hidden;
-    }
-
-    .draggable-window.minimized {
-      display: none !important;
-    }
-
-    .draggable-window.maximized {
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      border-radius: 0 !important;
-      z-index: 60 !important;
-    }
-
-    .title-bar {
-      cursor: move;
-      font-family: "Trebuchet MS", Tahoma, sans-serif;
-      user-select: none;
-    }
-
-    .draggable-window:not(.active) .title-bar {
-      background: linear-gradient(180deg, #7697c7 0%, #8ba7d3 50%, #7696c6 100%) !important;
-      border-color: #5c7cb0 !important;
-    }
-
-    .window-content-area {
-      background: #ece9d8;
-      padding: 8px;
-      overflow-y: auto;
-      flex: 1;
-      color: #111111;
-    }
-
-    /* ==========================================================================
-       COMPONENTES ASCII Y CONSOLAS DE ALTO CONTRASTE (#0d1117)
-       ========================================================================== */
-    .ascii-box {
-      background-color: #0d1117 !important;
-      color: #00ff66 !important;
-      font-family: 'Consolas', 'Courier New', Monaco, monospace !important;
-      font-size: 12px !important;
-      line-height: 1.4 !important;
-      padding: 12px 14px !important;
-      border: 2px inset #7f9db9 !important;
-      border-radius: 2px;
-      overflow-x: auto;
-      white-space: pre;
-      margin: 8px 0;
-      user-select: text;
-    }
-
-    .ascii-box.amber {
-      color: #ffb822 !important;
-    }
-
-    .ascii-box.cyan {
-      color: #58a6ff !important;
-    }
-
-    .ascii-banner {
-      background: #0d1117;
-      color: #00ff66;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 11px;
-      line-height: 1.25;
-      padding: 10px 14px;
-      border: 2px solid #2b4c7e;
-      overflow-x: auto;
-      white-space: pre;
-      margin: 0;
-    }
-
-    /* Bloques de código Java (Comparador Vulnerable vs Seguro) */
-    .code-diff-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 820px) {
-      .code-diff-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .code-panel {
-      border: 1px solid #94a3b8;
-      border-radius: 3px;
-      overflow: hidden;
-      background: #ffffff;
-    }
-
-    .code-panel-header {
-      padding: 5px 10px;
-      font-weight: bold;
-      font-size: 11px;
-      border-bottom: 1px solid #cbd5e1;
-    }
-
-    .code-panel-header.vuln {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .code-panel-header.safe {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .code-panel pre {
-      margin: 0 !important;
-      padding: 10px !important;
-      background: #f8fafc !important;
-      color: #0f172a !important;
-      font-family: 'Consolas', 'Courier New', monospace !important;
-      font-size: 11.5px !important;
-      line-height: 1.45 !important;
-      overflow-x: auto;
-      white-space: pre;
-      border: none !important;
-      user-select: text;
-    }
-
-    /* ==========================================================================
-       ESTÉTICA WEB 1.0 / INTRANET UNIVERSITARIA UNSL AÑOS 2000 (EN INTERNET EXPLORER)
-       ========================================================================== */
-    .ie-toolbar {
-      background: #ece9d8;
-      border-bottom: 1px solid #aca899;
-      padding: 4px 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-    }
-
-    .ie-address-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #ece9d8;
-      padding: 4px 8px;
-      border-bottom: 2px groove #ffffff;
-    }
-
-    .ie-address-input {
-      flex: 1;
-      background: #ffffff;
-      border: 1px inset #7f9db9;
-      padding: 3px 6px;
-      font-family: Tahoma, sans-serif;
-      font-size: 11.5px;
-      color: #111111;
-    }
-
-    .ie-viewport {
-      flex: 1;
-      background: #ffffff;
-      border: 2px inset #7f9db9;
-      overflow-y: auto;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .retro-marquee {
-      background: #000080;
-      color: #ffff00;
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-top: 2px ridge #c0c0c0;
-      border-bottom: 2px ridge #c0c0c0;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .retro-layout {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .retro-sidebar {
-      width: 235px;
-      min-width: 235px;
-      background: #e2e8f0;
-      border-right: 3px ridge #94a3b8;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
-    }
-
-    .retro-main {
-      flex: 1;
-      background: #f8fafc;
-      padding: 14px 18px;
-      overflow-y: auto;
-      color: #111111;
-    }
-
-    .retro-nav-btn {
-      width: 100%;
-      text-align: left;
-      padding: 7px 9px;
-      font-family: Tahoma, sans-serif;
-      font-size: 11.5px;
-      font-weight: bold;
-      background: #d4d0c8;
-      color: #111111;
-      border: 2px outset #ffffff;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .retro-nav-btn:hover:not(:disabled) {
-      background: #316ac5;
-      color: #ffffff;
-    }
-
-    .retro-nav-btn.active {
-      background: #000080;
-      color: #ffffff;
-      border: 2px inset #ffffff;
-    }
-
-    .retro-nav-btn:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-      background: #cbd5e1;
-      color: #475569;
-    }
-
-    /* Fases incrementales dentro de un módulo */
-    .phase-stepper {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      background: #e2e8f0;
-      padding: 6px;
-      border: 2px groove #ffffff;
-    }
-
-    .phase-tab {
-      flex: 1;
-      min-width: 120px;
-      padding: 6px 8px;
-      font-size: 11px;
-      font-weight: bold;
-      background: #d4d0c8;
-      color: #111111;
-      border: 2px outset #ffffff;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .phase-tab.active {
-      background: #000080;
-      color: #ffff00;
-      border: 2px inset #ffffff;
-    }
-
-    .phase-tab.done {
-      border-bottom: 3px solid #16a34a;
-    }
-
-    .retro-card {
-      background: #ffffff;
-      border: 2px groove #cbd5e1;
-      padding: 12px 14px;
-      margin-bottom: 12px;
-    }
-
-    .retro-card h3 {
-      margin: 0 0 8px 0;
-      color: #000080;
-      font-size: 14px;
-      border-bottom: 1px dashed #94a3b8;
-      padding-bottom: 4px;
-    }
-
-    .flag-box {
-      background: #0d1117;
-      border: 2px solid #00ff66;
-      color: #00ff66;
-      padding: 10px 12px;
-      font-family: 'Consolas', monospace;
+    a { color: var(--siu-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: var(--font-mono);
       font-size: 12.5px;
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      user-select: text;
-    }
-
-    .flag-box.blue {
-      border-color: #58a6ff;
-      color: #58a6ff;
-    }
-
-    /* Tablas estilo Web 2000 de alta legibilidad */
-    table.retro-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #ffffff;
-      font-size: 11.5px;
-      margin-top: 8px;
-    }
-
-    table.retro-table th {
-      background: #000080;
-      color: #ffffff;
-      padding: 6px 8px;
-      text-align: left;
-      border: 1px solid #94a3b8;
-    }
-
-    table.retro-table td {
-      padding: 5px 8px;
-      border: 1px solid #cbd5e1;
-      color: #111111;
-    }
-
-    table.retro-table tr:nth-child(even) td {
       background: #f1f5f9;
+      color: #0f172a;
+      padding: 1px 5px;
+      border-radius: 3px;
     }
 
-    /* ==========================================================================
-       BARRA DE TAREAS Y MENÚ INICIO WINDOWS XP
-       ========================================================================== */
-    #taskbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 32px;
-      background: linear-gradient(180deg, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #1941a5 100%);
-      border-top: 1px solid #3c81f3;
+    /* HEADER INSTITUCIONAL UNSL */
+    .siu-header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
-      z-index: 9999;
-      padding: 0;
-      box-shadow: 0 -1px 4px rgba(0,0,0,0.4);
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .siu-brand { display: flex; align-items: center; gap: 18px; }
+    .unsl-shield { width: 48px; height: 55px; flex-shrink: 0; }
+    .siu-university-title {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.6vw, 2rem);
+      font-weight: 700;
+      color: var(--siu-blue);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    .siu-subtitle {
+      font-size: 12.5px;
+      color: var(--siu-muted);
+      margin-top: 2px;
     }
 
-    #start-button {
-      height: 32px;
-      padding: 0 14px 0 10px;
-      background: linear-gradient(180deg, #3c8f3c 0%, #48a748 15%, #378737 85%, #246124 100%);
-      border: none;
-      border-top-right-radius: 10px;
-      border-bottom-right-radius: 10px;
-      color: #ffffff !important;
-      font-weight: bold;
-      font-style: italic;
-      font-size: 13px;
-      font-family: Tahoma, sans-serif;
-      display: flex;
+    .header-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .phase-pill {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .student-pill {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
-      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.4), 2px 0 4px rgba(0,0,0,0.3);
-      text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
     }
-
-    #taskbar-windows {
-      flex: 1;
-      display: flex;
+    .session-pill {
+      display: none;
       align-items: center;
-      gap: 4px;
-      padding: 0 8px;
+      gap: 8px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .session-pill.active { display: inline-flex; }
+
+    /* NAVEGACIÓN */
+    .siu-nav-wrapper {
+      border-top: 1px solid var(--siu-border);
+      border-bottom: 1px solid var(--siu-border);
+      background: #fcfcfc;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .siu-nav {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: stretch;
       overflow-x: auto;
     }
-
-    .taskbar-item {
-      height: 24px;
-      min-width: 120px;
-      max-width: 185px;
-      padding: 0 8px;
-      background: #3c81f3;
-      border: 1px solid #1c4fb8;
-      border-radius: 3px;
-      color: #ffffff !important;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .taskbar-item.active {
-      background: #1b4bb8;
-      box-shadow: inset 1px 1px 3px rgba(0,0,0,0.45);
-      font-weight: bold;
-    }
-
-    #system-tray {
-      height: 100%;
-      background: linear-gradient(180deg, #0d8aee 0%, #1296f3 10%, #0b77d3 90%, #095ca8 100%);
-      border-left: 1px solid #08488a;
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #ffffff !important;
-      font-size: 11px;
-    }
-
-    #start-menu {
-      position: fixed;
-      bottom: 32px;
-      left: 0;
-      width: 320px;
-      background: #ffffff;
-      border: 2px solid #0054e3;
-      border-top-right-radius: 8px;
-      box-shadow: 4px -4px 16px rgba(0,0,0,0.45);
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .start-menu-header {
-      background: linear-gradient(180deg, #1b65cc 0%, #3a8df0 100%);
-      color: #ffffff !important;
-      padding: 10px 12px;
-      font-weight: bold;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .start-menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #f1f5f9;
-      color: #111111;
-    }
-
-    .start-menu-item:hover {
-      background: #316ac5;
-      color: #ffffff !important;
-    }
-
-    /* Terminal MS-DOS */
-    .dos-screen {
-      background: #0d1117;
-      color: #00ff66;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 12px;
-      padding: 10px;
-      height: 300px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      border: 2px inset #7f9db9;
-      user-select: text;
-    }
-
-    .dos-input-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 6px;
-      background: #0d1117;
-      padding: 6px 8px;
-      border: 1px solid #30363d;
-    }
-
-    .dos-input-row span {
-      color: #00ff66;
-      font-family: 'Consolas', monospace;
-      font-weight: bold;
-    }
-
-    .dos-input-row input {
-      flex: 1;
+    .siu-tab {
       background: transparent;
       border: none;
-      outline: none;
-      color: #f0f6fc;
-      font-family: 'Consolas', monospace;
-      font-size: 12px;
+      border-right: 1px solid var(--siu-border);
+      padding: 11px 16px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: #4b5563;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .siu-tab:first-child { border-left: 1px solid var(--siu-border); }
+    .siu-tab:hover { background: #f3f4f6; color: #111827; }
+    .siu-tab.active { background: var(--siu-blue); color: #ffffff; font-weight: 600; }
+    .siu-tab.locked { opacity: 0.5; cursor: not-allowed; background: #f8fafc; color: #9ca3af; }
+    .tab-step-badge {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.08);
+      font-weight: 600;
+    }
+    .siu-tab.active .tab-step-badge { background: rgba(255, 255, 255, 0.24); }
+
+    /* CONTENEDOR PRINCIPAL */
+    .siu-main { max-width: 1180px; margin: 0 auto; padding: 24px 24px 48px; }
+    .tab-panel { display: none; animation: fadeIn 0.16s ease-out; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-heading {
+      margin: 0 0 12px 0;
+      font-size: 19px;
+      font-weight: 600;
+      color: #374151;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eeeeee;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 2px 6px;
-      font-size: 10.5px;
-      font-weight: bold;
-      border-radius: 2px;
+    .siu-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+    .siu-acceso-grid { display: grid; grid-template-columns: 330px 1fr; gap: 36px; align-items: start; }
+    @media (max-width: 860px) {
+      .siu-grid-2, .siu-acceso-grid { grid-template-columns: 1fr; gap: 20px; }
     }
-    .badge-red { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-    .badge-blue { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
-    .badge-green { background: #dcfce7; color: #166534; border: 1px solid #22c55e; }
-    .badge-gray { background: #e2e8f0; color: #334155; border: 1px solid #94a3b8; }
+
+    .form-group { margin-bottom: 13px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: #374151; }
+    .form-control {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13.5px;
+      font-family: var(--font-sans);
+      color: #111827;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+    .form-control:focus { outline: none; border-color: var(--siu-blue); box-shadow: 0 0 0 2px rgba(0, 147, 220, 0.16); }
+
+    .btn-siu {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 15px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      color: #ffffff;
+      background: linear-gradient(to bottom, #2ca3d4, #0077b5);
+      border: 1px solid #00669e;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-siu:hover { filter: brightness(1.06); }
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+    .btn-secondary:hover { background: #e5e7eb; filter: none; }
+    .btn-danger { background: #dc2626; border-color: #b91c1c; }
+    .btn-success { background: #059669; border-color: #047857; }
+
+    .siu-card {
+      background: #ffffff;
+      border: 1px solid var(--siu-border);
+      border-radius: 6px;
+      padding: 18px 20px;
+      margin-top: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    /* BLOQUE DIDÁCTICO: OBJETIVOS Y RÚBRICA DE 4 ETAPAS */
+    .didactic-banner {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--siu-blue);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .didactic-banner h3 { margin: 0 0 6px 0; font-size: 14.5px; color: #0f172a; }
+    .didactic-stages {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .stage-pill {
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    /* DIFF DE CÓDIGO (ANTES VS DESPUÉS) */
+    .diff-box {
+      margin-top: 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .diff-header {
+      background: #f1f5f9;
+      padding: 8px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    @media (max-width: 800px) { .diff-grid { grid-template-columns: 1fr; } }
+    .diff-col { padding: 12px 14px; overflow-x: auto; }
+    .diff-col.vuln { border-right: 1px solid #334155; background: rgba(225, 29, 72, 0.08); }
+    .diff-col.safe { background: rgba(16, 185, 129, 0.08); }
+    .diff-col pre { margin: 6px 0 0 0; white-space: pre-wrap; word-break: break-word; }
+
+    /* CUESTIONARIOS FORMATIVOS */
+    .quiz-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 16px 18px;
+      margin-top: 18px;
+    }
+    .quiz-q { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
+    .quiz-q:last-of-type { border-bottom: none; margin-bottom: 8px; }
+    .quiz-opt { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0; cursor: pointer; font-size: 13px; }
+
+    /* ALERTAS Y TABLAS */
+    .alert-box { padding: 11px 14px; border-radius: 5px; margin-top: 12px; font-size: 13px; }
+    .alert-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .alert-warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+    .siu-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+    .siu-table th, .siu-table td { padding: 8px 11px; border: 1px solid var(--siu-border); text-align: left; }
+    .siu-table th { background: #f8fafc; font-weight: 600; color: #374151; }
+
+    .code-viewer {
+      background: #111827;
+      color: #e5e7eb;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      padding: 14px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 12px;
+    }
+
+    .xss-wall-item {
+      border: 1px solid var(--siu-border);
+      background: #f9fafb;
+      padding: 10px 14px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    /* RANKING PODIO (DÍA 3 CTF) */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 16px 0 22px;
+    }
+    @media (max-width: 720px) { .podium-grid { grid-template-columns: 1fr; } }
+    .podium-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      background: #ffffff;
+    }
+    .podium-1 { border-top: 4px solid #eab308; background: #fefce8; }
+    .podium-2 { border-top: 4px solid #94a3b8; background: #f8fafc; }
+    .podium-3 { border-top: 4px solid #d97706; background: #fffbeb; }
+    .podium-rank { font-size: 24px; font-weight: 800; }
+    .podium-alias { font-size: 16px; font-weight: 700; margin: 4px 0; color: #0f172a; }
+    .podium-pts { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--blue-team); }
+
+    /* MANUAL FSOCIETY + PANEL DOCENTE */
+    .mrrobot-manual {
+      background: #09090b;
+      color: #e4e4e7;
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      padding: 20px 24px;
+      font-family: var(--font-mono);
+    }
+    .mrrobot-manual code { background: #18181b; color: #22c55e; }
+    .mrrobot-btn {
+      background: #e11d48;
+      color: #ffffff;
+      border: 1px solid #be123c;
+      padding: 8px 14px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* TUTOR INFERIOR PURPLE TEAM */
+    .tutor-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(15, 23, 42, 0.97);
+      color: #e2e8f0;
+      border-top: 2px solid var(--red-team);
+      z-index: 1000;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.28);
+    }
+    .tutor-bar-header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .tutor-pill {
+      background: rgba(225, 29, 72, 0.18);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      color: #fda4af;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 5px;
+    }
+    .ctf-score-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tutor-drawer-body {
+      display: none;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      max-height: 55vh;
+      overflow-y: auto;
+    }
+    .tutor-bar.open .tutor-drawer-body {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 16px;
+      padding-top: 14px;
+    }
+    @media (max-width: 900px) { .tutor-bar.open .tutor-drawer-body { grid-template-columns: 1fr; } }
+
+    .tutor-box {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .tutor-box code { background: rgba(255,255,255,0.1); color: #fda4af; }
+    .step-chip {
+      background: rgba(255,255,255,0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .step-chip.active { background: rgba(225,29,72,0.22); color: #fecdd3; border-color: #f43f5e; font-weight: 600; }
+    .step-chip.completed { border-color: #10b981; color: #34d399; }
+    .step-chip.locked { opacity: 0.45; cursor: not-allowed; }
+
+    .mode-switch {
+      display: inline-flex;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      padding: 3px;
+    }
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      padding: 5px 11px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .mode-btn.active-vuln { background: rgba(225,29,72,0.28); color: #fecdd3; }
+    .mode-btn.active-safe { background: rgba(16,185,129,0.25); color: #6ee7b7; }
+
+    .telemetry-panel {
+      background: #0b1120;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid #10b981;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .flag-input {
+      flex: 1;
+      background: #0b1120;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #34d399;
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    /* MODAL REGISTRO ALUMNO */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 8px;
+      max-width: 440px;
+      width: 100%;
+      padding: 22px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
-  <div id="desktop" onclick="handleDesktopClick(event)">
-    <!-- ICONOS DEL ESCRITORIO -->
-    <div class="desktop-grid">
-      <div class="desktop-icon" ondblclick="openWindow('win-ie')">
-        <div class="desktop-icon-img">🌐</div>
-        <div class="desktop-icon-title">Intranet UNSL (IE 6.0)</div>
-      </div>
 
-      <div class="desktop-icon" ondblclick="openWindow('win-ctf')">
-        <div class="desktop-icon-img">🛡️</div>
-        <div class="desktop-icon-title">Centro CTF &amp; Progreso</div>
-      </div>
+  <!-- MODAL DE IDENTIFICACIÓN EN AULA -->
+  <div id="registerModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+    <div class="modal-card">
+      <h2 id="registerTitle" style="margin:0 0 6px; font-size:18px; color:#0f172a;">Identificación en Sala de Máquinas</h2>
+      <p style="margin:0 0 14px; font-size:13px; color:#475569;">
+        Ingresa tu nombre o alias para aislar tus prácticas de XSS Almacenado y registrar tu puntaje en el Ranking CTF del taller.
+      </p>
+      <form onsubmit="submitRegistration(event)">
+        <div class="form-group">
+          <label for="regAlias" class="form-label">Nombre o Alias</label>
+          <input id="regAlias" type="text" class="form-control" required maxlength="30" placeholder="Ej: Ana Gomez">
+        </div>
+        <div class="form-group">
+          <label for="regWorkstation" class="form-label">PC / Puesto (Opcional)</label>
+          <input id="regWorkstation" type="text" class="form-control" maxlength="20" placeholder="Ej: Sala8-PC11">
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;">
+          <button type="submit" class="btn-siu">Comenzar Taller</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      <div class="desktop-icon" ondblclick="openWindow('win-dos')">
-        <div class="desktop-icon-img">💻</div>
-        <div class="desktop-icon-title">Símbolo del Sistema</div>
-      </div>
-
-      <div class="desktop-icon" ondblclick="openWindow('win-notepad')">
-        <div class="desktop-icon-img">📝</div>
-        <div class="desktop-icon-title">Bloc de Notas</div>
-      </div>
-
-      <div class="desktop-icon" ondblclick="openWindow('win-panel')">
-        <div class="desktop-icon-img">⚙️</div>
-        <div class="desktop-icon-title">Panel DevSecOps</div>
+  <!-- CABECERA INSTITUCIONAL -->
+  <header class="siu-header">
+    <div class="siu-brand">
+      <svg class="unsl-shield" viewBox="0 0 100 116" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Escudo UNSL">
+        <path d="M8 8 H92 V64 C92 92 50 108 50 108 C50 108 8 92 8 64 V8 Z" fill="#0066b3" stroke="#004987" stroke-width="4"/>
+        <path d="M16 16 H84 V62 C84 85 50 99 50 99 C50 99 16 85 16 62 V16 Z" fill="#ffffff"/>
+        <path d="M18 18 H82 V52 H18 Z" fill="#7ec8f2"/>
+        <circle cx="50" cy="38" r="11" fill="#facc15" stroke="#eab308" stroke-width="2"/>
+        <path d="M18 54 L36 38 L52 50 L68 36 L82 52 V64 H18 Z" fill="#1e6091"/>
+        <path d="M18 64 H82 C80 83 50 96 50 96 C50 96 20 83 18 64 Z" fill="#facc15"/>
+        <path d="M32 68 L50 92 L68 68" stroke="#0066b3" stroke-width="2.5" fill="none"/>
+      </svg>
+      <div>
+        <h1 class="siu-university-title">Universidad Nacional de San Luis</h1>
+        <div class="siu-subtitle">Taller de Seguridad Web Purple Team · Entorno Controlado Offline</div>
       </div>
     </div>
 
-    <!-- ======================================================================
-         VENTANA PRINCIPAL: INTERNET EXPLORER 6.0 -> INTRANET RETRO UNSL 2000s
-         ====================================================================== -->
-    <div id="win-ie" class="draggable-window window active" style="top: 18px; left: 112px; width: calc(100% - 135px); height: calc(100% - 36px); z-index: 20;">
-      <div class="title-bar" onmousedown="startDrag(event, 'win-ie')">
-        <div class="title-bar-text">🌐 Microsoft Internet Explorer - Intranet Universitaria UNSL (Edición 2003)</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" onclick="minimizeWindow('win-ie')"></button>
-          <button aria-label="Maximize" onclick="toggleMaximize('win-ie')"></button>
-          <button aria-label="Close" onclick="closeWindow('win-ie')"></button>
+    <div class="header-badges">
+      <a id="ctfTerminalLink" href="/ctf.html" class="btn-siu btn-success" style="display:none; font-family:var(--font-mono); font-size:12px;">&gt;_ TERMINAL CTF ASCII</a>
+      <span id="phaseBadge" class="phase-pill">Jornada: Modo Libre</span>
+      <button type="button" id="studentPill" class="student-pill" onclick="openRegisterModal()" title="Cambiar alias o puesto">
+        🎓 <span id="studentAliasLabel">Sin registrar</span> (<span id="studentPcLabel">Sala</span>)
+      </button>
+      <div id="sessionPill" class="session-pill">
+        <span>👤 SIU: <strong id="sessionUsername">-</strong> (<span id="sessionRole">-</span>)</span>
+        <button type="button" class="btn-siu btn-secondary" style="padding:2px 8px; font-size:11px;" onclick="logoutSession()">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVEGACIÓN PRINCIPAL -->
+  <nav class="siu-nav-wrapper" aria-label="Navegación del taller">
+    <div class="siu-nav">
+      <button type="button" class="siu-tab active" data-tab="certificados" onclick="switchTab('certificados')">
+        Validador de Certificados <span class="tab-step-badge">Día 1 · CWE-22</span>
+      </button>
+      <button type="button" class="siu-tab" data-tab="acceso" onclick="switchTab('acceso')">
+        Acceso y Directorio <span class="tab-step-badge">Día 1-2 · CWE-89</span>
+      </button>
+      <button type="button" class="siu-tab" data-tab="perfil" onclick="switchTab('perfil')">
+        Mi Perfil <span class="tab-step-badge">Día 2 · CWE-79</span>
+      </button>
+      <button type="button" class="siu-tab" id="tabBtnRanking" data-tab="ranking" style="display:none;" onclick="switchTab('ranking')">
+        🏆 Ranking CTF <span class="tab-step-badge">Día 3</span>
+      </button>
+      <button type="button" class="siu-tab" data-tab="examenes" onclick="switchTab('examenes')">
+        Cronograma
+      </button>
+      <button type="button" class="siu-tab" data-tab="ayuda" onclick="switchTab('ayuda')">
+        Ayuda / Docente
+      </button>
+    </div>
+  </nav>
+
+  <main class="siu-main">
+
+    <!-- ==================================================================
+         PESTAÑA 1: CWE-22 PATH TRAVERSAL (DÍA 1)
+         ================================================================== -->
+    <section id="tab-certificados" class="tab-panel active">
+      <div class="didactic-banner">
+        <h3>Módulo 1 (Día 1) · Path Traversal / Directory Traversal (CWE-22)</h3>
+        <div style="font-size:13px; color:#334155;">
+          <strong>Objetivo de aprendizaje:</strong> Comprender cómo la concatenación de rutas sin normalizar permite escapar del directorio público en Linux, analizar la mitigación con listas blancas/normalización canónica y validar la frontera <code>startsWith()</code>.
+        </div>
+        <div class="didactic-stages">
+          <span class="stage-pill">1. Causa Raíz</span>
+          <span class="stage-pill">2. Ataque Red Team</span>
+          <span class="stage-pill">3. Análisis de Código</span>
+          <span class="stage-pill">4. Defensa + Cuestionario</span>
         </div>
       </div>
 
-      <div class="ie-toolbar">
-        <button onclick="navigateRetro('home')">🏠 Inicio</button>
-        <button onclick="openWindow('win-ctf')">🛡️ Ver Progreso CTF</button>
-        <button onclick="openWindow('win-dos')">💻 Terminal DOS</button>
-        <button id="btnTeacherMode" onclick="toggleTeacherUnlock()">🔓 Modo Docente: Bloqueo Estricto</button>
-        <span style="margin-left:auto; font-weight:bold; color:#000080;" id="ieModeIndicator">SERVIDOR: MODO VULNERABLE</span>
-      </div>
-
-      <div class="ie-address-bar">
-        <span style="font-weight:bold;">Dirección:</span>
-        <input type="text" class="ie-address-input" id="ieAddressInput" value="http://intranet.unsl.edu.ar/ciberlab/2003/inicio.htm" readonly>
-        <button onclick="playXpClick()">Ir</button>
-      </div>
-
-      <div class="ie-viewport">
-        <!-- Banner ASCII art UNSL -->
-        <pre class="ascii-banner">┌───────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ██╗   ██╗███╗   ██╗███████╗██╗         ██╗      █████╗ ██████╗     ██████╗ ██╗   ██╗██████╗ ██████╗      │
-│  ██║   ██║████╗  ██║██╔════╝██║         ██║     ██╔══██╗██╔══██╗    ██╔══██╗██║   ██║██╔══██╗██╔══██╗     │
-│  ██║   ██║██╔██╗ ██║███████╗██║         ██║     ███████║██████╔╝    ██████╔╝██║   ██║██████╔╝██████╔╝     │
-│  ██║   ██║██║╚██╗██║╚════██║██║         ██║     ██╔══██║██╔══██╗    ██╔═══╝ ██║   ██║██╔══██╗██╔═══╝      │
-│  ╚██████╔╝██║ ╚████║███████║███████╗    ███████╗██║  ██║██████╔╝    ██║     ╚██████╔╝██║  ██║██║          │
-│   ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═════╝     ╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝          │
-│  [ INTRANET UNIVERSITARIA v2.003 :: FACULTAD DE CIENCIAS FÍSICO MATEMÁTICAS Y NATURALES :: PURPLE TEAM ]  │
-└───────────────────────────────────────────────────────────────────────────────────────────────────────────┘</pre>
-
-        <div class="retro-marquee">
-          <marquee scrollamount="4">
-            *** BIENVENIDO AL LABORATORIO DE CIBERSEGURIDAD WEB UNSL *** PROGRESIÓN INCREMENTAL: COMPLETA RED TEAM + BLUE TEAM PARA DESBLOQUEAR EL SIGUIENTE MÓDULO ***
-          </marquee>
+      <div class="siu-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <strong>📄 Archivos disponibles en <code>/storage/public/</code></strong>
+          <button type="button" class="btn-siu btn-secondary" onclick="loadPublicFiles()">Actualizar Lista</button>
         </div>
+        <div id="publicFilesList" style="margin-top:10px;">Cargando...</div>
 
-        <div class="retro-layout">
-          <!-- MENÚ LATERAL ESTILO WEB 1.0 -->
-          <div class="retro-sidebar">
-            <div style="background:#000080; color:#fff; padding:5px 8px; font-weight:bold; font-size:11px; text-align:center;">
-              MENÚ DEL PORTAL
-            </div>
+        <hr style="border:0; border-top:1px solid #eee; margin:16px 0;">
 
-            <button class="retro-nav-btn active" id="nav-home" onclick="navigateRetro('home')">
-              <span>00. Inicio &amp; Mapa ASCII</span>
-              <span>🏠</span>
-            </button>
-
-            <button class="retro-nav-btn" id="nav-m1" onclick="navigateRetro('m1')">
-              <span>01. CWE-89: SQL Injection</span>
-              <span id="lock-m1">🔓</span>
-            </button>
-
-            <button class="retro-nav-btn" id="nav-m2" onclick="navigateRetro('m2')" disabled>
-              <span>02. CWE-79: XSS Reflejado</span>
-              <span id="lock-m2">🔒</span>
-            </button>
-
-            <button class="retro-nav-btn" id="nav-m3" onclick="navigateRetro('m3')" disabled>
-              <span>03. CWE-22: Path Traversal</span>
-              <span id="lock-m3">🔒</span>
-            </button>
-
-            <button class="retro-nav-btn" id="nav-ctf" onclick="openWindow('win-ctf')">
-              <span>04. Validar Flags (CTF)</span>
-              <span>🏆</span>
-            </button>
-
-            <!-- Caja ASCII de Progreso Lateral -->
-            <div style="margin-top:auto;">
-              <div class="ascii-box" id="sidebarAsciiProgress" style="font-size:11px !important; padding:8px !important;">┌──────────────────────┐
-│ PROGRESO CTF:  0%    │
-│ [░░░░░░░░░░] 0/6     │
-│ PUNTOS: 0 / 850      │
-└──────────────────────┘</div>
-              <div style="font-size:10px; color:#334155; text-align:center; margin-top:4px;">
-                Optimizando para 800x600<br>y Microsoft IE 6.0
-              </div>
-            </div>
+        <form onsubmit="handleFileDownload(event)" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+          <div style="flex:1; min-width:240px;">
+            <label for="filenameInput" class="form-label">Archivo o ruta relativa (<code>filename</code>)</label>
+            <input id="filenameInput" type="text" class="form-control" value="politica_seguridad.txt" placeholder="Ej: ../confidential/flag.txt">
           </div>
-
-          <!-- CONTENIDO PRINCIPAL DE LA INTRANET -->
-          <div class="retro-main" id="retroMainContent">
-            <!-- Se renderiza dinámicamente según la ruta seleccionada -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======================================================================
-         VENTANA 2: CENTRO DE SEGURIDAD & CTF TRACKER
-         ====================================================================== -->
-    <div id="win-ctf" class="draggable-window window minimized" style="top: 40px; left: 160px; width: 660px; height: 500px; z-index: 25;">
-      <div class="title-bar" onmousedown="startDrag(event, 'win-ctf')">
-        <div class="title-bar-text">🛡️ Centro de Seguridad &amp; CTF Tracker - UNSL</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" onclick="minimizeWindow('win-ctf')"></button>
-          <button aria-label="Maximize" onclick="toggleMaximize('win-ctf')"></button>
-          <button aria-label="Close" onclick="closeWindow('win-ctf')"></button>
-        </div>
-      </div>
-      <div class="window-content-area">
-        <pre class="ascii-box" id="ctfAsciiSummary">┌───────────────────────────────────────────────────────────────────┐
-│ TABLERO DE PUNTUACIÓN PURPLE TEAM (RED EXPLOIT + BLUE DEFENSE)    │
-│ Progreso: [░░░░░░░░░░] 0%  |  Retos: 0/6  |  Puntaje: 0 / 850 pts │
-└───────────────────────────────────────────────────────────────────┘</pre>
-
-        <fieldset style="margin-bottom:10px;">
-          <legend><strong>Validar Bandera Capturada (FLAG{...})</strong></legend>
-          <form onsubmit="submitFlagForm(event)" style="display:flex; gap:8px; align-items:center;">
-            <input type="text" id="txtFlagInput" placeholder="Ej: FLAG{UNSL_SQLI_AUTH_BYPASS_2026}" style="flex:1; padding:5px; font-family:Consolas, monospace;">
-            <button type="submit">Validar Bandera</button>
-            <button type="button" onclick="resetCtfProgress()">Reiniciar Progreso</button>
-          </form>
-          <div id="lblFlagFeedback" style="margin-top:6px; font-weight:bold;"></div>
-        </fieldset>
-
-        <table class="retro-table">
-          <thead>
-            <tr>
-              <th>Módulo</th>
-              <th>Equipo</th>
-              <th>Desafío</th>
-              <th>Puntos</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tblCtfChallengesBody">
-            <tr><td colspan="5" style="text-align:center;">Cargando desafíos...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ======================================================================
-         VENTANA 3: SÍMBOLO DEL SISTEMA (MS-DOS)
-         ====================================================================== -->
-    <div id="win-dos" class="draggable-window window minimized" style="top: 80px; left: 220px; width: 650px; height: 420px; z-index: 30;">
-      <div class="title-bar" onmousedown="startDrag(event, 'win-dos')">
-        <div class="title-bar-text">💻 C:\WINDOWS\system32\cmd.exe - Consola Purple Team</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" onclick="minimizeWindow('win-dos')"></button>
-          <button aria-label="Maximize" onclick="toggleMaximize('win-dos')"></button>
-          <button aria-label="Close" onclick="closeWindow('win-dos')"></button>
-        </div>
-      </div>
-      <div class="window-content-area" style="background:#1c1c1c; display:flex; flex-direction:column;">
-        <div class="dos-screen" id="dosOutput">Microsoft Windows XP [Versión 5.1.2600]
-(C) Copyright 1985-2001 Microsoft Corp.
-
-C:\UNSL\CIBERLAB&gt; help
-Comandos disponibles:
-  help              - Muestra esta ayuda
-  ctf               - Muestra el estado de banderas y puntaje
-  submit &lt;FLAG&gt;     - Valida una bandera en el servidor CTF
-  cat &lt;archivo&gt;     - Lee un archivo desde /api/files/download
-  curl &lt;ruta&gt;       - Ejecuta petición GET al servidor local
-  unlock            - Activa/desactiva el Modo Docente
-  cls               - Limpia la pantalla
-</div>
-        <form class="dos-input-row" onsubmit="handleDosCommand(event)">
-          <span>C:\UNSL\CIBERLAB&gt;</span>
-          <input type="text" id="txtDosCommand" placeholder="Escribe un comando (ej: ctf, submit FLAG{...}, cat reporte_auditoria_2026.txt)" autocomplete="off">
+          <button type="submit" class="btn-siu">Validar y Descargar</button>
         </form>
+        <div id="fileDownloadOutput"></div>
       </div>
-    </div>
 
-    <!-- ======================================================================
-         VENTANA 4: BLOC DE NOTAS XP (VISOR DE ARCHIVOS)
-         ====================================================================== -->
-    <div id="win-notepad" class="draggable-window window minimized" style="top: 90px; left: 260px; width: 580px; height: 400px; z-index: 28;">
-      <div class="title-bar" onmousedown="startDrag(event, 'win-notepad')">
-        <div class="title-bar-text">📝 Bloc de Notas - Visor de Archivos Locales</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" onclick="minimizeWindow('win-notepad')"></button>
-          <button aria-label="Maximize" onclick="toggleMaximize('win-notepad')"></button>
-          <button aria-label="Close" onclick="closeWindow('win-notepad')"></button>
+      <!-- Comparador Diff de Código -->
+      <div class="diff-box">
+        <div class="diff-header" onclick="toggleDiff('diff-m1')">
+          <span>🔍 Análisis de Código (Antes vs. Después) — FileController.java</span>
+          <span>Mostrar / Ocultar</span>
+        </div>
+        <div id="diff-m1" class="diff-grid" style="display:none;">
+          <div class="diff-col vuln">
+            <strong style="color:#fda4af;">🔴 Vulnerable (Concatenación directa)</strong>
+            <pre>Path publicRoot = storageRoot.resolve("public");
+File target = new File(publicRoot.toFile(), filename);
+// "../confidential/flag.txt" escapa de public/</pre>
+          </div>
+          <div class="diff-col safe">
+            <strong style="color:#6ee7b7;">🛡️ Remediado (Normalización + Frontera)</strong>
+            <pre>Path baseDir = storageRoot.resolve("public").toAbsolutePath().normalize();
+Path target = baseDir.resolve(filename).normalize();
+if (!target.startsWith(baseDir)) {
+  return ResponseEntity.status(403).build();
+}</pre>
+          </div>
         </div>
       </div>
-      <div class="window-content-area" style="display:flex; flex-direction:column; gap:6px;">
-        <div style="display:flex; gap:6px; align-items:center;">
-          <strong>Archivo rápido:</strong>
-          <button onclick="openInNotepad('reporte_auditoria_2026.txt')">reporte_auditoria_2026.txt</button>
-          <button onclick="openInNotepad('politica_seguridad.txt')">politica_seguridad.txt</button>
-        </div>
-        <textarea id="notepadContent" style="flex:1; font-family:Consolas, monospace; font-size:12px; padding:10px; background:#ffffff; color:#111111; border:2px inset #7f9db9; resize:none;" readonly>Seleccione un archivo desde el Módulo 3 o use los botones superiores para visualizar su contenido.</textarea>
+
+      <!-- Cuestionario Práctico Día 1 -->
+      <div class="quiz-box" id="quizContainer-m1">
+        <strong>📝 Cuestionario de Práctica — Path Traversal (Día 1)</strong>
+        <div id="quizBody-m1" style="margin-top:10px;">Cargando preguntas...</div>
       </div>
-    </div>
+    </section>
 
-    <!-- ======================================================================
-         VENTANA 5: PANEL DE CONTROL DEVSECOPS
-         ====================================================================== -->
-    <div id="win-panel" class="draggable-window window minimized" style="top: 110px; left: 300px; width: 500px; z-index: 26;">
-      <div class="title-bar" onmousedown="startDrag(event, 'win-panel')">
-        <div class="title-bar-text">⚙️ Panel de Control DevSecOps - Conmutador Global</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" onclick="minimizeWindow('win-panel')"></button>
-          <button aria-label="Close" onclick="closeWindow('win-panel')"></button>
+    <!-- ==================================================================
+         PESTAÑA 2: CWE-89 SQL INJECTION (DÍA 1 PARTE 1 + DÍA 2 PARTE 2)
+         ================================================================== -->
+    <section id="tab-acceso" class="tab-panel">
+      <div class="didactic-banner">
+        <h3>Módulo 2 (Día 1 &amp; Día 2) · SQL Injection: Auth Bypass, UNION-Based y Blind SQLi (CWE-89)</h3>
+        <div style="font-size:13px; color:#334155;">
+          <strong>Objetivo de aprendizaje:</strong> Identificar cómo entradas no parametrizadas alteran el AST SQL (Parte 1), extraer datos de otras tablas con <code>UNION SELECT</code> e inferir datos con Blind SQLi (Parte 2), y blindar con <code>PreparedStatement</code>.
+        </div>
+        <div class="didactic-stages">
+          <span class="stage-pill">1. Auth Bypass (Día 1)</span>
+          <span class="stage-pill">2. UNION &amp; Blind SQLi (Día 2)</span>
+          <span class="stage-pill">3. Análisis de Código</span>
+          <span class="stage-pill">4. PreparedStatement + Quiz</span>
         </div>
       </div>
-      <div class="window-content-area">
-        <fieldset>
-          <legend><strong>Modo Global del Servidor Backend</strong></legend>
-          <p id="lblPanelMode" style="font-weight:bold; color:#991b1b;">ESTADO ACTUAL: MODO VULNERABLE (Red Team)</p>
-          <p style="font-size:11.5px;">Alterna entre la ejecución de endpoints vulnerables (para explotar y obtener banderas Red Team) y endpoints remediados (para validar defensas Blue Team).</p>
-          <button id="btnToggleGlobalMode" onclick="toggleGlobalMode()" style="font-weight:bold; padding:6px 12px;">
-            ACTIVAR MODO SEGURO (BLUE TEAM)
-          </button>
-        </fieldset>
-      </div>
-    </div>
-  </div>
 
-  <!-- MENÚ INICIO -->
-  <div id="start-menu">
-    <div class="start-menu-header">
-      <span>🎓</span>
-      <span>Estudiante UNSL · Purple Team</span>
-    </div>
-    <div class="start-menu-item" onclick="openWindow('win-ie'); toggleStartMenu();">🌐 Intranet UNSL (Internet Explorer)</div>
-    <div class="start-menu-item" onclick="openWindow('win-ctf'); toggleStartMenu();">🛡️ Centro de Seguridad &amp; CTF</div>
-    <div class="start-menu-item" onclick="openWindow('win-dos'); toggleStartMenu();">💻 Símbolo del Sistema (MS-DOS)</div>
-    <div class="start-menu-item" onclick="openWindow('win-notepad'); toggleStartMenu();">📝 Bloc de Notas</div>
-    <div class="start-menu-item" onclick="openWindow('win-panel'); toggleStartMenu();">⚙️ Panel DevSecOps (Modo Vuln/Safe)</div>
-  </div>
-
-  <!-- BARRA DE TAREAS -->
-  <div id="taskbar">
-    <button id="start-button" onclick="toggleStartMenu()">
-      <span>⊞</span> Inicio
-    </button>
-    <div id="taskbar-windows"></div>
-    <div id="system-tray">
-      <span id="trayMode" style="font-weight:bold; color:#fde047; cursor:pointer;" onclick="toggleGlobalMode()" title="Clic para alternar modo Vulnerable/Seguro">VULN</span>
-      <span id="trayClock">12:00</span>
-    </div>
-  </div>
-
-  <script>
-    // =========================================================================
-    // ESTADO GLOBAL INCREMENTAL Y PERSISTENCIA EN LOCALSTORAGE
-    // =========================================================================
-    let currentMode = 'vuln'; // 'vuln' | 'safe'
-    let currentRoute = 'home'; // 'home' | 'm1' | 'm2' | 'm3'
-    let currentPhase = { m1: 1, m2: 1, m3: 1 };
-    let teacherUnlock = false;
-    let ctfChallenges = [];
-    let solvedIds = JSON.parse(localStorage.getItem('unsl_ctf_solved') || '[]');
-    let zIndexCounter = 30;
-    let activeDrag = null;
-    let dragOffsetX = 0;
-    let dragOffsetY = 0;
-    let audioCtx = null;
-
-    // =========================================================================
-    // AUDIO RETRO WINDOWS XP
-    // =========================================================================
-    function getAudioCtx() {
-      if (!audioCtx) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (Ctx) audioCtx = new Ctx();
-      }
-      return audioCtx;
-    }
-
-    function playTone(freq, duration, type = 'sine', vol = 0.06) {
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        gain.gain.setValueAtTime(vol, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-      } catch (_) {}
-    }
-
-    function playXpClick() { playTone(800, 0.04, 'triangle', 0.04); }
-    function playXpDing() { playTone(880, 0.12, 'sine', 0.07); setTimeout(() => playTone(1174, 0.22, 'sine', 0.07), 90); }
-    function playXpError() { playTone(220, 0.18, 'sawtooth', 0.06); }
-
-    // =========================================================================
-    // GESTOR DE VENTANAS WINDOWS XP
-    // =========================================================================
-    function updateClock() {
-      const now = new Date();
-      document.getElementById('trayClock').textContent =
-        String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-    }
-    setInterval(updateClock, 10000);
-    updateClock();
-
-    function handleDesktopClick(e) {
-      if (e.target.id === 'desktop') {
-        document.getElementById('start-menu').style.display = 'none';
-      }
-    }
-
-    function toggleStartMenu() {
-      playXpClick();
-      const menu = document.getElementById('start-menu');
-      menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    function bringToFront(winId) {
-      document.querySelectorAll('.draggable-window').forEach(w => w.classList.remove('active'));
-      const win = document.getElementById(winId);
-      if (win) {
-        zIndexCounter++;
-        win.style.zIndex = zIndexCounter;
-        win.classList.add('active');
-      }
-      updateTaskbar();
-    }
-
-    function openWindow(winId) {
-      playXpClick();
-      const win = document.getElementById(winId);
-      if (!win) return;
-      win.classList.remove('minimized');
-      win.style.display = 'flex';
-      bringToFront(winId);
-      if (winId === 'win-ctf') renderCtfTable();
-    }
-
-    function closeWindow(winId) {
-      playXpClick();
-      const win = document.getElementById(winId);
-      if (win) {
-        win.classList.add('minimized');
-        updateTaskbar();
-      }
-    }
-
-    function minimizeWindow(winId) {
-      playXpClick();
-      const win = document.getElementById(winId);
-      if (win) {
-        win.classList.add('minimized');
-        updateTaskbar();
-      }
-    }
-
-    function toggleMaximize(winId) {
-      playXpClick();
-      const win = document.getElementById(winId);
-      if (win) {
-        win.classList.toggle('maximized');
-        bringToFront(winId);
-      }
-    }
-
-    function startDrag(e, winId) {
-      if (e.target.tagName === 'BUTTON') return;
-      const win = document.getElementById(winId);
-      if (!win || win.classList.contains('maximized')) return;
-      bringToFront(winId);
-      activeDrag = win;
-      dragOffsetX = e.clientX - win.offsetLeft;
-      dragOffsetY = e.clientY - win.offsetTop;
-      document.addEventListener('mousemove', onDrag);
-      document.addEventListener('mouseup', stopDrag);
-    }
-
-    function onDrag(e) {
-      if (!activeDrag) return;
-      activeDrag.style.left = Math.max(0, e.clientX - dragOffsetX) + 'px';
-      activeDrag.style.top = Math.max(0, e.clientY - dragOffsetY) + 'px';
-    }
-
-    function stopDrag() {
-      activeDrag = null;
-      document.removeEventListener('mousemove', onDrag);
-      document.removeEventListener('mouseup', stopDrag);
-    }
-
-    function updateTaskbar() {
-      const container = document.getElementById('taskbar-windows');
-      container.innerHTML = '';
-      const titles = {
-        'win-ie': '🌐 Intranet UNSL',
-        'win-ctf': '🛡️ Centro CTF',
-        'win-dos': '💻 Terminal DOS',
-        'win-notepad': '📝 Bloc de Notas',
-        'win-panel': '⚙️ Panel DevSecOps'
-      };
-      Object.keys(titles).forEach(id => {
-        const win = document.getElementById(id);
-        if (!win) return;
-        if (!win.classList.contains('minimized') || win.dataset.opened === 'true') {
-          win.dataset.opened = 'true';
-          const btn = document.createElement('button');
-          btn.className = 'taskbar-item' + (win.classList.contains('active') && !win.classList.contains('minimized') ? ' active' : '');
-          btn.textContent = titles[id];
-          btn.onclick = () => {
-            if (win.classList.contains('minimized')) openWindow(id);
-            else if (win.classList.contains('active')) minimizeWindow(id);
-            else bringToFront(id);
-          };
-          container.appendChild(btn);
-        }
-      });
-    }
-
-    // =========================================================================
-    // SISTEMA CTF, DESBLOQUEO INCREMENTAL Y BARRAS ASCII
-    // =========================================================================
-    async function loadCtfChallenges() {
-      try {
-        const res = await fetch('/api/ctf/challenges');
-        const data = await res.json();
-        ctfChallenges = data.challenges || [];
-      } catch (_) {
-        ctfChallenges = [];
-      }
-      updateUnlockState();
-      renderCtfTable();
-    }
-
-    function isModuleDone(modNum) {
-      const redId = `m${modNum}-red`;
-      const blueId = `m${modNum}-blue`;
-      return solvedIds.includes(redId) && solvedIds.includes(blueId);
-    }
-
-    function isModuleUnlocked(modNum) {
-      if (teacherUnlock || modNum === 1) return true;
-      if (modNum === 2) return isModuleDone(1);
-      if (modNum === 3) return isModuleDone(2);
-      return false;
-    }
-
-    function updateUnlockState() {
-      const btnM2 = document.getElementById('nav-m2');
-      const btnM3 = document.getElementById('nav-m3');
-      const lockM2 = document.getElementById('lock-m2');
-      const lockM3 = document.getElementById('lock-m3');
-
-      const u2 = isModuleUnlocked(2);
-      const u3 = isModuleUnlocked(3);
-
-      btnM2.disabled = !u2;
-      lockM2.textContent = isModuleDone(2) ? '✅' : (u2 ? '🔓' : '🔒');
-
-      btnM3.disabled = !u3;
-      lockM3.textContent = isModuleDone(3) ? '✅' : (u3 ? '🔓' : '🔒');
-
-      document.getElementById('lock-m1').textContent = isModuleDone(1) ? '✅' : '🔓';
-
-      updateAsciiProgressBars();
-    }
-
-    function makeAsciiBar(doneCount, totalCount) {
-      const len = 10;
-      const filled = totalCount > 0 ? Math.round((doneCount / totalCount) * len) : 0;
-      return '[' + '█'.repeat(filled) + '░'.repeat(len - filled) + ']';
-    }
-
-    function calculateScore() {
-      return ctfChallenges
-        .filter(c => solvedIds.includes(c.id))
-        .reduce((acc, c) => acc + c.points, 0);
-    }
-
-    function updateAsciiProgressBars() {
-      const total = ctfChallenges.length || 6;
-      const done = solvedIds.length;
-      const pct = Math.round((done / total) * 100);
-      const score = calculateScore();
-      const bar = makeAsciiBar(done, total);
-
-      document.getElementById('sidebarAsciiProgress').textContent =
-`┌──────────────────────┐
-│ PROGRESO CTF: ${String(pct).padStart(3)}%   │
-│ ${bar} ${done}/${total}     │
-│ PUNTOS: ${String(score).padStart(3)} / 850    │
-└──────────────────────┘`;
-
-      document.getElementById('ctfAsciiSummary').textContent =
-`┌───────────────────────────────────────────────────────────────────┐
-│ TABLERO DE PUNTUACIÓN PURPLE TEAM (RED EXPLOIT + BLUE DEFENSE)    │
-│ Progreso: ${bar} ${String(pct).padStart(3)}% | Retos: ${done}/${total} | Puntaje: ${String(score).padStart(3)} / 850 pts │
-└───────────────────────────────────────────────────────────────────┘`;
-    }
-
-    function renderCtfTable() {
-      const tbody = document.getElementById('tblCtfChallengesBody');
-      if (!tbody) return;
-      if (ctfChallenges.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No se pudieron cargar los retos.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = ctfChallenges.map(c => {
-        const solved = solvedIds.includes(c.id);
-        const teamBadge = c.team === 'RED'
-          ? '<span class="badge badge-red">RED TEAM</span>'
-          : '<span class="badge badge-blue">BLUE TEAM</span>';
-        const statusBadge = solved
-          ? '<span class="badge badge-green">✔ COMPLETADO</span>'
-          : '<span class="badge badge-gray">PENDIENTE</span>';
-        return `<tr>
-          <td><strong>M${c.moduleNumber} (${c.cwe})</strong></td>
-          <td>${teamBadge}</td>
-          <td><strong>${escapeHtml(c.title)}</strong><br><small>${escapeHtml(c.hint)}</small></td>
-          <td>${c.points} pts</td>
-          <td>${statusBadge}</td>
-        </tr>`;
-      }).join('');
-    }
-
-    async function submitFlag(flagValue) {
-      const clean = (flagValue || '').trim();
-      if (!clean) return { valid: false, message: 'Ingresa una bandera.' };
-
-      const res = await fetch('/api/ctf/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flag: clean })
-      });
-      const data = await res.json();
-
-      if (res.ok && data.valid) {
-        if (!solvedIds.includes(data.challengeId)) {
-          solvedIds.push(data.challengeId);
-          localStorage.setItem('unsl_ctf_solved', JSON.stringify(solvedIds));
-        }
-        playXpDing();
-        updateUnlockState();
-        renderCtfTable();
-        logDos(`[CTF OK] ${data.message}`);
-      } else {
-        playXpError();
-        logDos(`[CTF ERR] ${data.message}`);
-      }
-      return data;
-    }
-
-    async function submitFlagForm(e) {
-      e.preventDefault();
-      const input = document.getElementById('txtFlagInput');
-      const feedback = document.getElementById('lblFlagFeedback');
-      const res = await submitFlag(input.value);
-      feedback.textContent = res.message;
-      feedback.style.color = res.valid ? '#166534' : '#991b1b';
-      if (res.valid) input.value = '';
-    }
-
-    async function quickSubmitFlag(flag) {
-      const res = await submitFlag(flag);
-      alert(res.message);
-      renderModuleView(currentRoute);
-    }
-
-    function resetCtfProgress() {
-      if (!confirm('¿Reiniciar todo el progreso CTF y volver a bloquear los módulos?')) return;
-      solvedIds = [];
-      localStorage.removeItem('unsl_ctf_solved');
-      teacherUnlock = false;
-      updateUnlockState();
-      renderCtfTable();
-      navigateRetro('home');
-    }
-
-    function toggleTeacherUnlock() {
-      playXpClick();
-      teacherUnlock = !teacherUnlock;
-      const btn = document.getElementById('btnTeacherMode');
-      btn.textContent = teacherUnlock
-        ? '🔒 Modo Docente: Todo Desbloqueado'
-        : '🔓 Modo Docente: Bloqueo Estricto';
-      updateUnlockState();
-      renderModuleView(currentRoute);
-    }
-
-    // =========================================================================
-    // CONMUTADOR DE MODO GLOBAL (VULNERABLE vs SEGURO)
-    // =========================================================================
-    function toggleGlobalMode(forceMode) {
-      currentMode = forceMode || (currentMode === 'vuln' ? 'safe' : 'vuln');
-      playXpClick();
-
-      const tray = document.getElementById('trayMode');
-      const ieInd = document.getElementById('ieModeIndicator');
-      const lblPanel = document.getElementById('lblPanelMode');
-      const btnPanel = document.getElementById('btnToggleGlobalMode');
-
-      if (currentMode === 'safe') {
-        tray.textContent = 'SAFE';
-        tray.style.color = '#86efac';
-        ieInd.textContent = 'SERVIDOR: MODO SEGURO (BLUE TEAM)';
-        ieInd.style.color = '#166534';
-        lblPanel.textContent = 'ESTADO ACTUAL: MODO REMEDIADO (SEGURO)';
-        lblPanel.style.color = '#166534';
-        btnPanel.textContent = 'ACTIVAR MODO VULNERABLE (RED TEAM)';
-        logDos('[CONFIG] Servidor en MODO SEGURO (Defensas Blue Team activas).');
-      } else {
-        tray.textContent = 'VULN';
-        tray.style.color = '#fde047';
-        ieInd.textContent = 'SERVIDOR: MODO VULNERABLE (RED TEAM)';
-        ieInd.style.color = '#991b1b';
-        lblPanel.textContent = 'ESTADO ACTUAL: MODO VULNERABLE (Red Team)';
-        lblPanel.style.color = '#991b1b';
-        btnPanel.textContent = 'ACTIVAR MODO SEGURO (BLUE TEAM)';
-        logDos('[CONFIG] Servidor en MODO VULNERABLE (Entorno de pruebas).');
-      }
-      renderModuleView(currentRoute);
-    }
-
-    // =========================================================================
-    // NAVEGACIÓN DE LA INTRANET RETRO (2000s) Y FASES INCREMENTALES
-    // =========================================================================
-    function navigateRetro(route) {
-      playXpClick();
-      if (route === 'm2' && !isModuleUnlocked(2)) {
-        playXpError();
-        alert('Módulo 2 bloqueado. Completa las banderas Red y Blue del Módulo 1 primero (o activa el Modo Docente).');
-        return;
-      }
-      if (route === 'm3' && !isModuleUnlocked(3)) {
-        playXpError();
-        alert('Módulo 3 bloqueado. Completa las banderas Red y Blue del Módulo 2 primero (o activa el Modo Docente).');
-        return;
-      }
-
-      currentRoute = route;
-      document.querySelectorAll('.retro-nav-btn').forEach(b => b.classList.remove('active'));
-      const navBtn = document.getElementById('nav-' + route);
-      if (navBtn) navBtn.classList.add('active');
-
-      const addrMap = {
-        home: 'http://intranet.unsl.edu.ar/ciberlab/2003/inicio.htm',
-        m1: 'http://intranet.unsl.edu.ar/ciberlab/2003/mod1_sqli.htm',
-        m2: 'http://intranet.unsl.edu.ar/ciberlab/2003/mod2_xss.htm',
-        m3: 'http://intranet.unsl.edu.ar/ciberlab/2003/mod3_pathtraversal.htm'
-      };
-      document.getElementById('ieAddressInput').value = addrMap[route] || addrMap.home;
-      renderModuleView(route);
-    }
-
-    function setPhase(mod, phase) {
-      playXpClick();
-      currentPhase[mod] = phase;
-      renderModuleView(mod);
-    }
-
-    function renderModuleView(route) {
-      const container = document.getElementById('retroMainContent');
-      if (route === 'home') {
-        container.innerHTML = renderHomeContent();
-      } else if (route === 'm1') {
-        container.innerHTML = renderModule1(currentPhase.m1);
-      } else if (route === 'm2') {
-        container.innerHTML = renderModule2(currentPhase.m2);
-      } else if (route === 'm3') {
-        container.innerHTML = renderModule3(currentPhase.m3);
-      }
-    }
-
-    function renderHomeContent() {
-      const total = ctfChallenges.length || 6;
-      const done = solvedIds.length;
-      return `
-        <div class="retro-card">
-          <h3>🏛️ Portal de Ciberseguridad Web - Universidad Nacional de San Luis</h3>
-          <p>Bienvenido al entorno práctico con enfoque <strong>Purple Team</strong>. Este laboratorio sigue una metodología <strong>incremental en 4 fases</strong> para cada vulnerabilidad del OWASP Top 10:</p>
-          <pre class="ascii-box cyan">┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
-│ FASE 1: TEORÍA    │ ──▶ │ FASE 2: RED TEAM  │ ──▶ │ FASE 3: TELEMETRÍA│ ──▶ │ FASE 4: BLUE TEAM │
-│ Causa Raíz / AST  │     │ Explotación &amp; Flag│     │ Logs y Evidencia  │     │ Remediación &amp; Flag│
-└───────────────────┘     └───────────────────┘     └───────────────────┘     └───────────────────┘</pre>
-          <p>Para avanzar de un módulo al siguiente debes capturar y validar tanto la <strong>Bandera Red Team</strong> (demostrando la explotación) como la <strong>Bandera Blue Team</strong> (verificando la mitigación).</p>
-          <button onclick="navigateRetro('m1')" style="font-weight:bold; padding:6px 14px; font-size:12px;">
-            🚀 Comenzar por el Módulo 1: Inyección SQL (CWE-89)
-          </button>
-        </div>
-
-        <div class="retro-card">
-          <h3>📊 Mapa de Progresión Incremental (${done}/${total} Retos)</h3>
-          <table class="retro-table">
-            <thead>
-              <tr><th>Orden</th><th>Módulo</th><th>Vulnerabilidad (CWE)</th><th>Estado</th><th>Acción</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>01</td>
-                <td>Directorio de Usuarios</td>
-                <td>CWE-89 (SQL Injection)</td>
-                <td>${isModuleDone(1) ? '<span class="badge badge-green">COMPLETADO</span>' : '<span class="badge badge-blue">DISPONIBLE</span>'}</td>
-                <td><button onclick="navigateRetro('m1')">Abrir Módulo 1</button></td>
-              </tr>
-              <tr>
-                <td>02</td>
-                <td>Portal de Saludos</td>
-                <td>CWE-79 (XSS Reflejado)</td>
-                <td>${isModuleDone(2) ? '<span class="badge badge-green">COMPLETADO</span>' : (isModuleUnlocked(2) ? '<span class="badge badge-blue">DESBLOQUEADO</span>' : '<span class="badge badge-gray">BLOQUEADO 🔒</span>')}</td>
-                <td><button onclick="navigateRetro('m2')" ${isModuleUnlocked(2) ? '' : 'disabled'}>Abrir Módulo 2</button></td>
-              </tr>
-              <tr>
-                <td>03</td>
-                <td>Gestor de Documentos</td>
-                <td>CWE-22 (Path Traversal)</td>
-                <td>${isModuleDone(3) ? '<span class="badge badge-green">COMPLETADO</span>' : (isModuleUnlocked(3) ? '<span class="badge badge-blue">DESBLOQUEADO</span>' : '<span class="badge badge-gray">BLOQUEADO 🔒</span>')}</td>
-                <td><button onclick="navigateRetro('m3')" ${isModuleUnlocked(3) ? '' : 'disabled'}>Abrir Módulo 3</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function renderStepper(mod, activePhase) {
-      const labels = [
-        '1. Teoría & AST/DOM',
-        '2. Ataque Red Team',
-        '3. Telemetría Servidor',
-        '4. Remediación Blue Team'
-      ];
-      return `<div class="phase-stepper">` +
-        labels.map((lbl, idx) => {
-          const p = idx + 1;
-          return `<button class="phase-tab ${activePhase === p ? 'active' : ''}" onclick="setPhase('${mod}', ${p})">${lbl}</button>`;
-        }).join('') +
-      `</div>`;
-    }
-
-    // =========================================================================
-    // MÓDULO 1: CWE-89 (SQL INJECTION)
-    // =========================================================================
-    function renderModule1(phase) {
-      let body = '';
-      if (phase === 1) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 1: Causa Raíz a Nivel de Parser SQL (CWE-89)</h3>
-            <p>La inyección SQL ocurre cuando la entrada del usuario se concatena directamente dentro de una sentencia SQL sin separar el <strong>plano de control</strong> (comandos SQL) del <strong>plano de datos</strong> (literales).</p>
-            <pre class="ascii-box">┌──────────────────────────────────────────────────────────────────────┐
-│ FLUJO VULNERABLE (Statement + Concatenación):                        │
-│ Entrada:  ' OR '1'='1                                                │
-│ SQL:      SELECT ... WHERE username = '' OR '1'='1'                  │
-│ AST:      [WHERE] ──▶ [EQUALS(username, '')] OR [EQUALS('1', '1')]   │
-│                                              ▲                       │
-│                                              └── SIEMPRE TRUE!       │
-└──────────────────────────────────────────────────────────────────────┘</pre>
-            <button onclick="setPhase('m1', 2)">Continuar a Fase 2: Ataque Red Team ➔</button>
-          </div>`;
-      } else if (phase === 2) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 2: Explotación Red Team (Modo Actual: ${currentMode.toUpperCase()})</h3>
-            <p>Asegúrate de estar en <strong>Modo Vulnerable</strong> e intenta extraer las credenciales y SSN de todos los usuarios.</p>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-              <button onclick="toggleGlobalMode('vuln')">Modo Vulnerable</button>
-              <button onclick="runM1Search('agomez')">Payload Normal: agomez</button>
-              <button onclick="runM1Search(\"' OR '1'='1\")">💉 Payload Ataque: ' OR '1'='1</button>
+      <div class="siu-acceso-grid">
+        <div>
+          <h2 class="section-heading">Ingreso para Estudiantes (Parte 1)</h2>
+          <form onsubmit="handleStudentLogin(event)">
+            <div class="form-group">
+              <label for="loginUsername" class="form-label">Usuario</label>
+              <input id="loginUsername" type="text" class="form-control" placeholder="Ej: agomez" autocomplete="off">
             </div>
-            <form onsubmit="runM1Search(); return false;" style="display:flex; gap:6px;">
-              <input type="text" id="txtM1User" value="' OR '1'='1" style="flex:1; padding:4px; font-family:Consolas, monospace;">
-              <button type="submit">Buscar Usuario</button>
-            </form>
-            <div id="m1ResultArea" style="margin-top:10px;"></div>
-            <div style="margin-top:10px;"><button onclick="setPhase('m1', 3)">Continuar a Fase 3: Telemetría ➔</button></div>
-          </div>`;
-      } else if (phase === 3) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 3: Telemetría de Base de Datos H2</h3>
-            <p>Inspecciona la consulta exacta enviada al motor SQL antes y después de la inyección:</p>
-            <pre class="ascii-box amber" id="m1TelemetryBox">Ejecuta una búsqueda en la Fase 2 para capturar la telemetría SQL...</pre>
-            <button onclick="runM1Search(\"' OR '1'='1\")">Capturar Telemetría con Payload SQLi</button>
-            <button onclick="setPhase('m1', 4)">Continuar a Fase 4: Remediación Blue Team ➔</button>
-          </div>`;
-      } else {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 4: Auditoría de Código y Remediación Blue Team</h3>
-            <p>Cambia a <strong>Modo Seguro</strong> y ejecuta nuevamente el payload para validar que <code>PreparedStatement</code> lo neutraliza y entrega la bandera Blue Team.</p>
-            <div class="code-diff-grid">
-              <div class="code-panel">
-                <div class="code-panel-header vuln">❌ CÓDIGO VULNERABLE (UserController.java)</div>
-                <pre>String sql = "SELECT id, username, password, ssn "
+            <div class="form-group">
+              <label for="loginPassword" class="form-label">Contraseña</label>
+              <input id="loginPassword" type="password" class="form-control" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-siu">Ingresar</button>
+          </form>
+          <div id="sqliResultArea"></div>
+
+          <div class="siu-card" style="margin-top:22px;">
+            <strong style="color:#0f172a;">🕵️ Verificador Silencioso (Día 2 · Blind SQLi)</strong>
+            <p style="font-size:12.5px; color:#475569; margin:6px 0 10px;">
+              Endpoint <code>GET /api/users/check?username=...</code>. Solo responde <code>true</code> o <code>false</code> sin mostrar filas. Útil para probar inferencia booleana (ej. <code>agomez' AND 1=1--</code> vs <code>1=2</code>).
+            </p>
+            <div style="display:flex; gap:8px;">
+              <input id="blindInput" type="text" class="form-control" placeholder="Ej: agomez' AND '1'='1">
+              <button type="button" class="btn-siu btn-secondary" onclick="executeBlindCheck()">Verificar</button>
+            </div>
+            <div id="blindResultArea"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="siu-card" style="margin-top:0;">
+            <strong style="color:#1e3a8a;">🔎 Buscador del Directorio Académico (Parte 1 &amp; Parte 2 UNION)</strong>
+            <p style="margin:6px 0 10px; color:#475569; font-size:13px;">
+              Consulta <code>GET /api/users/search?username=...</code>. La consulta proyecta <strong>5 columnas</strong> de <code>users</code>. Para la Parte 2 (Día 2), descubre qué contiene la tabla secundaria <code>audit_secrets</code> usando <code>UNION SELECT</code>.
+            </p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input id="directorySearchInput" type="text" class="form-control" style="flex:1;" placeholder="Buscar usuario o inyectar payload SQL / UNION...">
+              <button type="button" class="btn-siu" onclick="executeUserSearch(false)">Consultar Directorio</button>
+            </div>
+            <div id="directorySearchResults"></div>
+          </div>
+
+          <div class="diff-box">
+            <div class="diff-header" onclick="toggleDiff('diff-m2')">
+              <span>🔍 Análisis de Código (Antes vs. Después) — UserController.java</span>
+              <span>Mostrar / Ocultar</span>
+            </div>
+            <div id="diff-m2" class="diff-grid" style="display:none;">
+              <div class="diff-col vuln">
+                <strong style="color:#fda4af;">🔴 Vulnerable (Concatenación SQL)</strong>
+                <pre>String sql = "SELECT id, username, password, role, ssn "
   + "FROM users WHERE username = '" + username + "'";
-Statement stmt = conn.createStatement();
 ResultSet rs = stmt.executeQuery(sql);</pre>
               </div>
-              <div class="code-panel">
-                <div class="code-panel-header safe">✅ CÓDIGO REMEDIADO (PreparedStatement)</div>
-                <pre>String sql = "SELECT id, username, role "
-  + "FROM users WHERE username = ?";
+              <div class="diff-col safe">
+                <strong style="color:#6ee7b7;">🛡️ Remediado (PreparedStatement + Mínimo Privilegio)</strong>
+                <pre>String sql = "SELECT id, username, role FROM users WHERE username = ?";
 PreparedStatement ps = conn.prepareStatement(sql);
 ps.setString(1, username);
 ResultSet rs = ps.executeQuery();</pre>
               </div>
             </div>
-            <div style="margin-top:10px; display:flex; gap:8px;">
-              <button onclick="toggleGlobalMode('safe'); setTimeout(() => runM1Search(\"' OR '1'='1\", true), 120);" style="font-weight:bold;">
-                🛡️ Activar Modo Seguro y Verificar Mitigación
-              </button>
+          </div>
+
+          <div class="quiz-box" id="quizContainer-m2">
+            <strong>📝 Cuestionario de Práctica — SQL Injection (Día 2)</strong>
+            <div id="quizBody-m2" style="margin-top:10px;">Cargando preguntas...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================
+         PESTAÑA 3: CWE-79 XSS REFLEJADO & ALMACENADO (DÍA 2)
+         ================================================================== -->
+    <section id="tab-perfil" class="tab-panel">
+      <div class="didactic-banner">
+        <h3>Módulo 3 (Día 2) · Cross-Site Scripting: Reflejado y Almacenado (CWE-79)</h3>
+        <div style="font-size:13px; color:#334155;">
+          <strong>Objetivo de aprendizaje:</strong> Observar la ejecución de JavaScript en el navegador (y su impacto sobre tokens de sesión), comprobar la persistencia en servidor del XSS Almacenado (aislado por alumno) y aplicar <code>Encode.forHtml()</code> + <code>CSP</code>.
+        </div>
+      </div>
+
+      <div class="siu-grid-2">
+        <div class="siu-card" style="margin-top:0;">
+          <h2 class="section-heading">1. XSS Reflejado (<code>/api/profile/greet</code>)</h2>
+          <p style="font-size:13px; color:#475569;">
+            Genera una vista HTML con tu nombre. En modo Vulnerable expone un token de sesión simulado en el DOM y omite <code>Content-Security-Policy</code>.
+          </p>
+          <form onsubmit="handleXssReflected(event)">
+            <div class="form-group">
+              <label for="xssNameInput" class="form-label">Nombre en constancia</label>
+              <input id="xssNameInput" type="text" class="form-control" placeholder='Ej: &lt;img src=x onerror="alert(window.__SIU_DEMO_SESSION__)"&gt;'>
             </div>
-            <div id="m1BlueResult" style="margin-top:10px;"></div>
-          </div>`;
-      }
-      return renderStepper('m1', phase) + body;
-    }
+            <button type="submit" class="btn-siu">Generar Vista de Perfil</button>
+          </form>
+          <div id="xssReflectedPreview" style="margin-top:12px;"></div>
+        </div>
 
-    async function runM1Search(forcedQuery, isBlueCheck = false) {
-      const input = document.getElementById('txtM1User');
-      const username = forcedQuery !== undefined ? forcedQuery : (input ? input.value : 'agomez');
-      if (input && forcedQuery !== undefined) input.value = forcedQuery;
-
-      const res = await fetch(`/api/users/search?username=${encodeURIComponent(username)}&mode=${currentMode}`);
-      const data = await res.json();
-      logDos(`[SQLi] mode=${currentMode} | query=${data.executedQuery}`);
-
-      const telBox = document.getElementById('m1TelemetryBox');
-      if (telBox) {
-        telBox.textContent = `┌─ TELEMETRÍA SQL (H2) ─────────────────────────────────┐
-│ Modo: ${data.mode}
-│ Query: ${data.executedQuery}
-│ Filas devueltas: ${data.rowCount}
-│ Análisis: ${data.securityAnalysis}
-└───────────────────────────────────────────────────────┘`;
-      }
-
-      const targetId = isBlueCheck ? 'm1BlueResult' : 'm1ResultArea';
-      const area = document.getElementById(targetId);
-      if (!area) return;
-
-      let html = `<pre class="ascii-box amber">Query ejecutada: ${escapeHtml(data.executedQuery)} (Filas: ${data.rowCount})</pre>`;
-      if (data.users && data.users.length > 0) {
-        html += `<table class="retro-table"><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Password</th><th>SSN</th></tr></thead><tbody>`;
-        data.users.forEach(u => {
-          html += `<tr><td>${u.id}</td><td><strong>${escapeHtml(u.username)}</strong></td><td>${escapeHtml(u.role)}</td>
-            <td>${u.password ? `<span style="color:#991b1b;font-weight:bold;">🚨 ${escapeHtml(u.password)}</span>` : '<span style="color:#166534;">[Omitido]</span>'}</td>
-            <td>${u.ssn ? `<span style="color:#991b1b;font-weight:bold;">🚨 ${escapeHtml(u.ssn)}</span>` : '<span style="color:#166534;">[Omitido]</span>'}</td></tr>`;
-        });
-        html += `</tbody></table>`;
-      } else {
-        html += `<p style="color:#166534; font-weight:bold;">✔ 0 registros retornados. La inyección fue tratada como texto literal.</p>`;
-      }
-
-      if (data.redTeamFlag) {
-        html += `<div class="flag-box"><span>🚩 Bandera Red Team: <strong>${data.redTeamFlag}</strong></span>
-          <button onclick="quickSubmitFlag('${data.redTeamFlag}')">Validar en CTF</button></div>`;
-      }
-      if (data.blueTeamFlag) {
-        html += `<div class="flag-box blue"><span>🛡️ Bandera Blue Team: <strong>${data.blueTeamFlag}</strong></span>
-          <button onclick="quickSubmitFlag('${data.blueTeamFlag}')">Validar en CTF</button></div>`;
-      }
-      area.innerHTML = html;
-    }
-
-    // =========================================================================
-    // MÓDULO 2: CWE-79 (REFLECTED XSS)
-    // =========================================================================
-    function renderModule2(phase) {
-      let body = '';
-      if (phase === 1) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 1: Interpretación en el DOM y Cross-Site Scripting (CWE-79)</h3>
-            <p>El XSS Reflejado ocurre cuando datos recibidos por HTTP se insertan en la respuesta HTML sin codificación contextual ni cabecera <code>Content-Security-Policy</code>.</p>
-            <pre class="ascii-box">┌──────────────────────────────────────────────────────────────────────┐
-│ FLUJO VULNERABLE (Reflejo Directo en HTML):                          │
-│ Input:    &lt;img src=x onerror="alert('XSS')"&gt;                         │
-│ Salida:   &lt;h2&gt;¡Bienvenido, &lt;img src=x onerror="alert('XSS')"&gt;!&lt;/h2&gt;  │
-│ Browser:  [HTML Parser] ──▶ Crea nodo &lt;img&gt; ──▶ Ejecuta JS onerror!  │
-└──────────────────────────────────────────────────────────────────────┘</pre>
-            <button onclick="setPhase('m2', 2)">Continuar a Fase 2: Ataque Red Team ➔</button>
-          </div>`;
-      } else if (phase === 2) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 2: Explotación Red Team (Modo Actual: ${currentMode.toUpperCase()})</h3>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-              <button onclick="toggleGlobalMode('vuln')">Modo Vulnerable</button>
-              <button onclick="runM2Greet('Estudiante UNSL')">Normal: Estudiante UNSL</button>
-              <button onclick="runM2Greet('<img src=x onerror=&quot;alert(\\'XSS_UNSL\\')&quot;>')">💉 Vector XSS: &lt;img onerror=...&gt;</button>
+        <div class="siu-card" style="margin-top:0;">
+          <h2 class="section-heading">2. XSS Almacenado en Servidor (<code>/api/profile/notes</code>)</h2>
+          <p style="font-size:13px; color:#475569;">
+            Las observaciones se guardan en la base de datos H2 del servidor <strong>aisladas para tu sesión</strong> (no afectan a otros compañeros).
+          </p>
+          <form onsubmit="handleXssStored(event)">
+            <div class="form-group">
+              <label for="xssStoredInput" class="form-label">Nueva observación académica</label>
+              <input id="xssStoredInput" type="text" class="form-control" placeholder="Escribe un comentario o payload HTML...">
             </div>
-            <form onsubmit="runM2Greet(); return false;" style="display:flex; gap:6px;">
-              <input type="text" id="txtM2Name" value='<img src=x onerror="alert(&apos;XSS_UNSL&apos;)">' style="flex:1; padding:4px; font-family:Consolas, monospace;">
-              <button type="submit">Generar Saludo</button>
-            </form>
-            <div id="m2FlagArea"></div>
-            <iframe id="m2Iframe" style="width:100%; height:170px; border:2px inset #7f9db9; margin-top:10px; background:#fff;"></iframe>
-            <div style="margin-top:8px;"><button onclick="setPhase('m2', 3)">Continuar a Fase 3: Telemetría ➔</button></div>
-          </div>`;
-      } else if (phase === 3) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 3: Telemetría de Cabeceras HTTP</h3>
-            <pre class="ascii-box amber" id="m2TelemetryBox">Envía un saludo en la Fase 2 para inspeccionar las cabeceras HTTP...</pre>
-            <button onclick="runM2Greet('<img src=x onerror=&quot;alert(1)&quot;>')">Inspeccionar Cabeceras con Vector XSS</button>
-            <button onclick="setPhase('m2', 4)">Continuar a Fase 4: Remediación Blue Team ➔</button>
-          </div>`;
-      } else {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 4: Defensa en Profundidad (OWASP Encoder + CSP)</h3>
-            <div class="code-diff-grid">
-              <div class="code-panel">
-                <div class="code-panel-header vuln">❌ CÓDIGO VULNERABLE (ProfileController.java)</div>
-                <pre>// Sin sanitización ni cabeceras CSP
-String html = "&lt;h2&gt;Bienvenido, " + name + "!&lt;/h2&gt;";
-return ResponseEntity.ok().body(html);</pre>
-              </div>
-              <div class="code-panel">
-                <div class="code-panel-header safe">✅ CÓDIGO REMEDIADO (Encode.forHtml + CSP)</div>
-                <pre>String safeName = Encode.forHtml(name);
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="submit" class="btn-siu">Guardar en Servidor</button>
+              <button type="button" class="btn-siu btn-secondary" onclick="loadStoredNotes()">Recargar (Simular Bedelía)</button>
+              <button type="button" class="btn-siu btn-secondary" onclick="clearStoredNotes()">Limpiar</button>
+            </div>
+          </form>
+          <div id="xssStoredFeedback"></div>
+          <div id="xssStoredWall" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <div class="diff-box">
+        <div class="diff-header" onclick="toggleDiff('diff-m3')">
+          <span>🔍 Análisis de Código (Antes vs. Después) — ProfileController.java</span>
+          <span>Mostrar / Ocultar</span>
+        </div>
+        <div id="diff-m3" class="diff-grid" style="display:none;">
+          <div class="diff-col vuln">
+            <strong style="color:#fda4af;">🔴 Vulnerable (HTML crudo sin CSP)</strong>
+            <pre>String html = "&lt;h2&gt;¡Bienvenido, " + name + "!&lt;/h2&gt;";
+// Sin Encode.forHtml() ni Content-Security-Policy</pre>
+          </div>
+          <div class="diff-col safe">
+            <strong style="color:#6ee7b7;">🛡️ Remediado (OWASP Encoder + CSP)</strong>
+            <pre>String safeName = Encode.forHtml(name);
 headers.set("Content-Security-Policy",
-  "default-src 'self'; script-src 'none';");
-headers.set("X-Content-Type-Options", "nosniff");</pre>
-              </div>
-            </div>
-            <div style="margin-top:10px;">
-              <button onclick="toggleGlobalMode('safe'); setTimeout(() => runM2Greet('<script>alert(1)</script>', true), 120);" style="font-weight:bold;">
-                🛡️ Activar Modo Seguro y Verificar Sanitización + CSP
-              </button>
-            </div>
-            <div id="m2BlueResult" style="margin-top:10px;"></div>
-          </div>`;
-      }
-      return renderStepper('m2', phase) + body;
-    }
+  "default-src 'self'; script-src 'none'; object-src 'none'");</pre>
+          </div>
+        </div>
+      </div>
 
-    async function runM2Greet(forcedName, isBlueCheck = false) {
-      const input = document.getElementById('txtM2Name');
-      const name = forcedName !== undefined ? forcedName : (input ? input.value : 'Invitado');
-      if (input && forcedName !== undefined) input.value = forcedName;
+      <div class="quiz-box" id="quizContainer-m3">
+        <strong>📝 Cuestionario de Práctica — XSS y CSP (Día 2)</strong>
+        <div id="quizBody-m3" style="margin-top:10px;">Cargando preguntas...</div>
+      </div>
+    </section>
 
-      const res = await fetch(`/api/profile/greet?name=${encodeURIComponent(name)}&mode=${currentMode}`);
-      const html = await res.text();
-      const csp = res.headers.get('Content-Security-Policy') || '[NO CONFIGURADA]';
-      const redFlag = res.headers.get('X-PurpleTeam-Red-Flag');
-      const blueFlag = res.headers.get('X-PurpleTeam-Blue-Flag');
+    <!-- ==================================================================
+         PESTAÑA 4: RANKING CTF EN TIEMPO REAL (DÍA 3)
+         ================================================================== -->
+    <section id="tab-ranking" class="tab-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 class="section-heading" style="border:none; margin:0; padding:0;">🏆 Competencia Capture The Flag — Ranking en Tiempo Real</h2>
+          <p style="margin:4px 0 0; font-size:13px; color:#6b7280;">Se actualiza automáticamente cada 6 segundos. Desempate por menor tiempo desde la última captura.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-siu btn-secondary" onclick="loadLeaderboard()">↻ Actualizar Ahora</button>
+          <button type="button" class="btn-siu" onclick="toggleProjectorMode()">🖥️ Modo Proyector</button>
+        </div>
+      </div>
 
-      logDos(`[XSS] mode=${currentMode} | CSP=${csp}`);
+      <div id="podiumGrid" class="podium-grid"></div>
 
-      const iframe = document.getElementById('m2Iframe');
-      if (iframe) iframe.srcdoc = html;
+      <div class="siu-card">
+        <strong>Tabla General de Posiciones</strong>
+        <table class="siu-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Participante</th>
+              <th>Puesto</th>
+              <th>Retos</th>
+              <th>Quizzes</th>
+              <th>Tiempo</th>
+              <th>Puntaje</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTableBody">
+            <tr><td colspan="7" style="text-align:center; color:#6b7280;">Cargando ranking...</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-      const telBox = document.getElementById('m2TelemetryBox');
-      if (telBox) {
-        telBox.textContent = `┌─ TELEMETRÍA HTTP (ProfileController) ─────────────────┐
-│ X-PurpleTeam-Mode: ${res.headers.get('X-PurpleTeam-Mode')}
-│ X-PurpleTeam-Sanitization: ${res.headers.get('X-PurpleTeam-Sanitization')}
-│ Content-Security-Policy: ${csp}
-│ X-Content-Type-Options: ${res.headers.get('X-Content-Type-Options') || '[AUSENTE]'}
-└───────────────────────────────────────────────────────┘`;
-      }
+      <div class="siu-card">
+        <strong>🎯 Lista de Desafíos CTF Oficiales</strong>
+        <div id="challengesListArea" style="margin-top:10px;">Cargando desafíos...</div>
+      </div>
+    </section>
 
-      const flagArea = document.getElementById(isBlueCheck ? 'm2BlueResult' : 'm2FlagArea');
-      if (!flagArea) return;
-      let out = '';
-      if (redFlag) {
-        out += `<div class="flag-box"><span>🚩 Bandera Red Team: <strong>${redFlag}</strong></span>
-          <button onclick="quickSubmitFlag('${redFlag}')">Validar en CTF</button></div>`;
-      }
-      if (blueFlag) {
-        out += `<div class="flag-box blue"><span>🛡️ Bandera Blue Team: <strong>${blueFlag}</strong></span>
-          <button onclick="quickSubmitFlag('${blueFlag}')">Validar en CTF</button></div>`;
-      }
-      flagArea.innerHTML = out;
-    }
+    <!-- ==================================================================
+         PESTAÑA 5: CRONOGRAMA OFICIAL DEL TALLER
+         ================================================================== -->
+    <section id="tab-examenes" class="tab-panel">
+      <h2 class="section-heading">Cronograma del Taller de Seguridad Web — UNSL (9 horas)</h2>
+      <table class="siu-table">
+        <thead>
+          <tr><th>Jornada</th><th>Duración</th><th>Núcleo Temático</th><th>Actividades en Plataforma</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Día 1</strong></td><td>3 horas</td><td>Fundamentos, Path Traversal (CWE-22) y SQLi Parte 1 (CWE-89)</td>
+            <td>Escape de directorios, cuestionario de listas blancas/normalización, Auth Bypass SQLi.</td>
+          </tr>
+          <tr>
+            <td><strong>Día 2</strong></td><td>3 horas</td><td>SQLi Parte 2 (UNION/Blind) y XSS Reflejado/Almacenado (CWE-79)</td>
+            <td>Extracción de tabla secundaria, inferencia booleana, impacto en sesión, XSS persistente en servidor, cuestionario y CSP.</td>
+          </tr>
+          <tr>
+            <td><strong>Día 3</strong></td><td>3 horas</td><td>Evaluación, Competencia CTF (1h 15m) y Exposición Libre</td>
+            <td>Ranking en tiempo real para premiación de los 3 primeros puestos y retos encadenados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-    // =========================================================================
-    // MÓDULO 3: CWE-22 (PATH TRAVERSAL)
-    // =========================================================================
-    function renderModule3(phase) {
-      let body = '';
-      if (phase === 1) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 1: Resolución de Rutas Relativas POSIX (CWE-22)</h3>
-            <p>El Path Traversal permite escapar del directorio público autorizado (<code>/storage/public/</code>) utilizando secuencias <code>../</code> para leer archivos confidenciales.</p>
-            <pre class="ascii-box">┌──────────────────────────────────────────────────────────────────────┐
-│ /app/storage/                                                        │
-│  ├── public/          ◀── Directorio Base Autorizado (baseDir)       │
-│  │    └── reporte_auditoria_2026.txt                                 │
-│  └── confidential/    ◀── Escape con ../confidential/flag.txt        │
-│       └── flag.txt                                                   │
-└──────────────────────────────────────────────────────────────────────┘</pre>
-            <button onclick="setPhase('m3', 2)">Continuar a Fase 2: Ataque Red Team ➔</button>
-          </div>`;
-      } else if (phase === 2) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 2: Explotación Red Team (Modo Actual: ${currentMode.toUpperCase()})</h3>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-              <button onclick="toggleGlobalMode('vuln')">Modo Vulnerable</button>
-              <button onclick="runM3Download('reporte_auditoria_2026.txt')">📄 reporte_auditoria_2026.txt</button>
-              <button onclick="runM3Download('../confidential/flag.txt')">💉 Payload Escape: ../confidential/flag.txt</button>
-            </div>
-            <form onsubmit="runM3Download(); return false;" style="display:flex; gap:6px;">
-              <input type="text" id="txtM3File" value="../confidential/flag.txt" style="flex:1; padding:4px; font-family:Consolas, monospace;">
-              <button type="submit">Descargar / Leer</button>
+    <!-- ==================================================================
+         PESTAÑA 6: AYUDA Y PANEL DOCENTE
+         ================================================================== -->
+    <section id="tab-ayuda" class="tab-panel">
+      <div class="siu-grid-2">
+        <!-- Manual Secreto -->
+        <div class="mrrobot-manual">
+          <div style="font-size:12px; color:#a1a1aa; margin-bottom:12px;">root@fsociety:~/unsl-siu — manual_operaciones</div>
+          <div id="ayudaLockGate">
+            <p style="font-size:12.5px; margin:0 0 12px;">🔒 Manual cifrado. Ingresa la clave provista por el equipo docente para desbloquearlo.</p>
+            <form onsubmit="unlockAyudaManual(event)" style="display:flex; flex-direction:column; gap:10px;">
+              <input id="ayudaPasswordInput" type="password" autocomplete="off" placeholder="Contraseña..."
+                     style="background:#000; border:1px solid #27272a; color:#22c55e; padding:8px 10px; border-radius:4px; font-family:var(--font-mono);">
+              <button type="submit" class="mrrobot-btn" style="align-self:flex-start;">&gt;_ DESBLOQUEAR</button>
+              <div id="ayudaPasswordError" style="font-size:12px; color:#f87171;"></div>
             </form>
-            <pre class="ascii-box" id="m3FileOutput">Esperando solicitud de archivo...</pre>
-            <div id="m3FlagArea"></div>
-            <div style="margin-top:8px;"><button onclick="setPhase('m3', 3)">Continuar a Fase 3: Telemetría ➔</button></div>
-          </div>`;
-      } else if (phase === 3) {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 3: Telemetría de Rutas Canónicas POSIX</h3>
-            <pre class="ascii-box amber" id="m3TelemetryBox">Descarga un archivo en la Fase 2 para ver la resolución canónica...</pre>
-            <button onclick="runM3Download('../confidential/flag.txt')">Trazar Ruta con ../confidential/flag.txt</button>
-            <button onclick="setPhase('m3', 4)">Continuar a Fase 4: Remediación Blue Team ➔</button>
-          </div>`;
-      } else {
-        body = `
-          <div class="retro-card">
-            <h3>Fase 4: Normalización y Frontera de Seguridad (startsWith)</h3>
-            <div class="code-diff-grid">
-              <div class="code-panel">
-                <div class="code-panel-header vuln">❌ CÓDIGO VULNERABLE (FileController.java)</div>
-                <pre>Path publicRoot = getStorageRoot().resolve("public");
-File target = new File(publicRoot.toFile(), filename);
-byte[] bytes = Files.readAllBytes(target.toPath());</pre>
-              </div>
-              <div class="code-panel">
-                <div class="code-panel-header safe">✅ CÓDIGO REMEDIADO (normalize + startsWith)</div>
-                <pre>Path baseDir = getStorageRoot().resolve("public").toAbsolutePath().normalize();
-Path targetPath = baseDir.resolve(filename).normalize();
-if (!targetPath.startsWith(baseDir)) {
-  return ResponseEntity.status(HttpStatus.FORBIDDEN).body(...);
-}</pre>
-              </div>
+          </div>
+          <div id="ayudaManualContent" style="display:none; font-size:12.5px; line-height:1.6;">
+            <p style="color:#22c55e; margin-top:0;"><strong>[ MANUAL DESBLOQUEADO ]</strong></p>
+            <p><strong>Día 1 · CWE-22:</strong> <code>GET /api/files/download?filename=../confidential/flag.txt</code></p>
+            <p><strong>Día 1 · CWE-89 (I):</strong> <code>' OR '1'='1</code> en buscador de Acceso.</p>
+            <p><strong>Día 2 · CWE-89 (II):</strong> <code>' UNION SELECT id, code_name, secret_value, classification, 'x' FROM audit_secrets--</code></p>
+            <p><strong>Día 2 · CWE-79:</strong> <code>&lt;img src=x onerror="alert(window.__SIU_DEMO_SESSION__)"&gt;</code></p>
+            <p><strong>Día 3 · CTF Extra:</strong> Revisa archivos internos en <code>confidential/</code> y claves en <code>audit_secrets</code>.</p>
+          </div>
+        </div>
+
+        <!-- Panel Docente -->
+        <div class="siu-card" style="margin-top:0;">
+          <h2 class="section-heading">🎓 Panel de Control Docente (Sala de Máquinas)</h2>
+          <div id="docenteAuthBox">
+            <p style="font-size:13px; color:#475569;">Ingresa la clave docente (<code>DOCENTE_PASSWORD</code>) para controlar la jornada activa, activar Modo Demo en vivo o reiniciar el Ranking.</p>
+            <form onsubmit="authDocente(event)" style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input id="docentePwdInput" type="password" class="form-control" style="flex:1;" placeholder="Clave docente...">
+              <button type="submit" class="btn-siu">Ingresar</button>
+            </form>
+            <div id="docenteAuthError" style="color:#dc2626; font-size:12px; margin-top:6px;"></div>
+          </div>
+
+          <div id="docenteControlsBox" style="display:none;">
+            <div class="form-group">
+              <label for="docentePhaseSelect" class="form-label">Jornada Habilitada para Estudiantes</label>
+              <select id="docentePhaseSelect" class="form-control" onchange="updateDocentePhase()">
+                <option value="DIA_1">Día 1: Path Traversal + SQLi (Parte 1)</option>
+                <option value="DIA_2">Día 2: + SQLi (Parte 2) + XSS Reflejado/Almacenado</option>
+                <option value="DIA_3_CTF">Día 3: Competencia CTF (Ranking en Vivo)</option>
+                <option value="LIBRE">Modo Libre: Todas las jornadas</option>
+              </select>
             </div>
-            <div style="margin-top:10px;">
-              <button onclick="toggleGlobalMode('safe'); setTimeout(() => runM3Download('../confidential/flag.txt', true), 120);" style="font-weight:bold;">
-                🛡️ Activar Modo Seguro y Verificar Bloqueo 403
-              </button>
+            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+              <input id="docenteDemoToggle" type="checkbox" onchange="updateDocentePhase()">
+              <label for="docenteDemoToggle" style="font-size:13px; font-weight:600; cursor:pointer;">Activar botones de Demo Rápida en el Tutor (para proyectar en clase)</label>
             </div>
-            <div id="m3BlueResult" style="margin-top:10px;"></div>
-          </div>`;
+            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+              <input id="docenteCtfToggle" type="checkbox" onchange="updateDocentePhase()">
+              <label for="docenteCtfToggle" style="font-size:13px; font-weight:600; cursor:pointer; color:#059669;">🚩 Liberar Competencia CTF y Ranking (Día 3)</label>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+              <button type="button" class="btn-siu btn-danger" onclick="resetClassLeaderboard()">↺ Reiniciar Ranking CTF</button>
+              <button type="button" class="btn-siu btn-success" onclick="exportLeaderboardCsv()">⬇ Exportar Ranking CSV</button>
+            </div>
+            <div id="docenteFeedback" style="font-size:12.5px; margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BARRA INFERIOR: TUTOR PURPLE TEAM -->
+  <aside id="tutorBar" class="tutor-bar open" aria-label="Tutor Purple Team">
+    <div class="tutor-bar-header" onclick="toggleTutorDrawer()">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span class="tutor-pill">PURPLE TEAM // TUTOR</span>
+        <span id="tutorBarTitle" style="font-size:13px; font-weight:600;">Módulo 1 (Día 1): Path Traversal (CWE-22)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="ctfScoreBadge" class="ctf-score-badge" style="display:none;">CTF: 0 pts (0/10)</span>
+        <button type="button" class="step-chip" onclick="event.stopPropagation(); downloadSessionReport();" title="Descargar evidencia de aprendizaje">📄 Evidencia</button>
+        <button type="button" class="step-chip" onclick="event.stopPropagation(); resetProgress();" title="Reiniciar progreso local">↺</button>
+        <span id="tutorToggleArrow" style="font-size:11.5px; color:#94a3b8;">▼ Ocultar</span>
+      </div>
+    </div>
+
+    <div class="tutor-drawer-body" onclick="event.stopPropagation()">
+      <div class="tutor-box">
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+          <button type="button" class="step-chip active" id="chip-1" onclick="selectStoryStep(1)">01 // CWE-22 Path Traversal</button>
+          <button type="button" class="step-chip" id="chip-2" onclick="selectStoryStep(2)">02 // CWE-89 SQL Injection</button>
+          <button type="button" class="step-chip" id="chip-3" onclick="selectStoryStep(3)">03 // CWE-79 XSS</button>
+        </div>
+
+        <div id="storyContent" style="font-size:12.5px; color:#e2e8f0; line-height:1.55;"></div>
+
+        <!-- Sistema de Pistas Progresivas (3 Niveles) -->
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="step-chip" id="btnNextHint" onclick="revealNextHint()">💡 Ver Pista (Nivel 1/3)</button>
+            <div class="mode-switch">
+              <button type="button" id="btnModeVuln" class="mode-btn active-vuln" onclick="setSecurityMode('vuln')">🔴 Vulnerable (Red)</button>
+              <button type="button" id="btnModeSafe" class="mode-btn" onclick="setSecurityMode('safe')">🛡️ Seguro (Blue)</button>
+            </div>
+          </div>
+          <div id="hintDisplayBox" style="font-size:12px; color:#fde68a; margin-top:8px;"></div>
+          <div id="quickPayloadButtons" style="display:none; gap:8px; flex-wrap:wrap; margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="telemetry-panel">
+          <strong>&gt;_ TELEMETRÍA &amp; FEEDBACK FORMATIVO</strong>
+          <div id="telemetryLog" style="margin-top:6px;">
+            <span style="color:#34d399;">listo@unsl:~$</span> Esperando interacción con el laboratorio...
+          </div>
+        </div>
+
+        <div id="ctfSubmitBox" class="tutor-box" style="padding:10px 14px; display:none;">
+          <strong style="font-size:12px; color:#34d399;">🚩 VALIDAR BANDERA CTF (<code>/api/ctf/submit</code>)</strong>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input id="flagInput" type="text" class="flag-input" placeholder="FLAG{...}">
+            <button type="button" class="btn-siu btn-success" onclick="submitFlagManual()">SUBMIT</button>
+          </div>
+          <div id="flagFeedback" style="font-size:12px; margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    // =========================================================================
+    // ESTADO GLOBAL
+    // =========================================================================
+    let currentStep = 1;
+    let securityMode = 'vuln';
+    let hintLevel = 0;
+    let classroomState = { activePhase: 'LIBRE', phaseLabel: 'Modo Libre', demoModeEnabled: false };
+    let docentePassword = sessionStorage.getItem('unsl_docente_pwd') || '';
+
+    let sessionId = localStorage.getItem('unsl_session_id') || '';
+    let studentAlias = localStorage.getItem('unsl_alias') || '';
+    let studentPc = localStorage.getItem('unsl_pc') || 'Sala-UNSL';
+    let capturedFlags = JSON.parse(localStorage.getItem('unsl_ctf_flags') || '[]');
+    let totalPoints = parseInt(localStorage.getItem('unsl_ctf_points') || '0', 10);
+    let maxScore = 1500;
+    let totalChallengesCount = 10;
+
+    const STORY_STEPS = {
+      1: {
+        tab: 'certificados',
+        title: 'Módulo 1 (Día 1): Path Traversal en Certificados (CWE-22)',
+        html: `<p style="margin:0;"><strong>Misión:</strong> Descarga los documentos públicos y luego intenta escapar de <code>/public/</code> usando rutas relativas para leer el archivo confidencial <code>flag.txt</code>. Luego cambia a <strong>Modo Seguro</strong> y responde el cuestionario.</p>`,
+        hints: [
+          'Pista 1 (Conceptual): En sistemas POSIX/Linux, dos puntos (<code>..</code>) suben un nivel en el árbol de directorios.',
+          'Pista 2 (Estructura): Desde <code>/storage/public/</code>, sube un nivel (<code>../</code>) y entra a la carpeta <code>confidential/</code>.',
+          'Pista 3 (Ejemplo): Ingresa <code>../confidential/flag.txt</code> en el campo filename.'
+        ],
+        demoPayloads: [
+          { label: '⚡ Demo: ../confidential/flag.txt', action: () => { document.getElementById('filenameInput').value = '../confidential/flag.txt'; handleFileDownload(); } }
+        ]
+      },
+      2: {
+        tab: 'acceso',
+        title: 'Módulo 2 (Día 1-2): SQL Injection (CWE-89)',
+        html: `<p style="margin:0;"><strong>Misión:</strong> En el Día 1 realiza un Auth Bypass booleano. En el Día 2 usa <code>UNION SELECT</code> (5 columnas) para leer la tabla <code>audit_secrets</code> y prueba el verificador Blind SQLi. Luego valida con <code>PreparedStatement</code>.</p>`,
+        hints: [
+          'Pista 1 (Conceptual): Si el input va entre comillas simples en SQL, una comilla <code>\'</code> cierra el literal y permite inyectar operadores lógicos.',
+          'Pista 2 (Auth Bypass): Fuerza una condición siempre verdadera con <code>\' OR \'1\'=\'1</code>.',
+          'Pista 3 (UNION Día 2): La tabla <code>audit_secrets</code> tiene <code>id, code_name, secret_value, classification</code>. Completa 5 columnas con <code>\' UNION SELECT id, code_name, secret_value, classification, \'x\' FROM audit_secrets--</code>.'
+        ],
+        demoPayloads: [
+          { label: "⚡ Demo: ' OR '1'='1", action: () => { document.getElementById('directorySearchInput').value = "' OR '1'='1"; executeUserSearch(false); } },
+          { label: "⚡ Demo: UNION audit_secrets", action: () => { document.getElementById('directorySearchInput').value = "' UNION SELECT id, code_name, secret_value, classification, 'x' FROM audit_secrets--"; executeUserSearch(false); } }
+        ]
+      },
+      3: {
+        tab: 'perfil',
+        title: 'Módulo 3 (Día 2): Cross-Site Scripting Reflejado y Almacenado (CWE-79)',
+        html: `<p style="margin:0;"><strong>Misión:</strong> Inyecta HTML/JS en el saludo reflejado (observando la exposición de <code>__SIU_DEMO_SESSION__</code>) y en las notas persistentes del servidor. Luego valida <code>Encode.forHtml()</code> + <code>CSP</code>.</p>`,
+        hints: [
+          'Pista 1 (Conceptual): Si el servidor concatena tu entrada sin escapar <code>&lt;</code> ni <code>&gt;</code>, el navegador la interpreta como etiqueta HTML.',
+          'Pista 2 (Estructura): Usa una etiqueta con manejador de eventos, como <code>&lt;img src=x onerror="..."&gt;</code>.',
+          'Pista 3 (Ejemplo): Envía <code>&lt;img src=x onerror="alert(\'XSS_UNSL\')"&gt;</code>.'
+        ],
+        demoPayloads: [
+          { label: '⚡ Demo: XSS Reflejado', action: () => { document.getElementById('xssNameInput').value = '<img src=x onerror="alert(window.__SIU_DEMO_SESSION__ || \'XSS_UNSL\')">'; handleXssReflected(); } },
+          { label: '⚡ Demo: XSS Almacenado', action: () => { document.getElementById('xssStoredInput').value = '<img src=x onerror="console.log(\'Stored XSS\')" style="display:none"><strong style="color:#dc2626;">[Payload Almacenado en BD]</strong>'; handleXssStored(); } }
+        ]
       }
-      return renderStepper('m3', phase) + body;
-    }
-
-    async function runM3Download(forcedFile, isBlueCheck = false) {
-      const input = document.getElementById('txtM3File');
-      const filename = forcedFile !== undefined ? forcedFile : (input ? input.value.trim() : 'reporte_auditoria_2026.txt');
-      if (input && forcedFile !== undefined) input.value = forcedFile;
-
-      const res = await fetch(`/api/files/download?filename=${encodeURIComponent(filename)}&mode=${currentMode}`);
-      const base = res.headers.get('X-PurpleTeam-Base-Dir') || '-';
-      const resolved = res.headers.get('X-PurpleTeam-Resolved-Path') || '-';
-      const blueFlagHeader = res.headers.get('X-PurpleTeam-Blue-Flag');
-
-      const telBox = document.getElementById('m3TelemetryBox');
-      if (telBox) {
-        telBox.textContent = `┌─ TELEMETRÍA POSIX (FileController) ───────────────────┐
-│ Archivo solicitado: ${filename}
-│ Directorio Base:    ${base}
-│ Ruta Resuelta:      ${resolved}
-│ HTTP Status:        ${res.status}
-└───────────────────────────────────────────────────────┘`;
-      }
-
-      const outPre = document.getElementById('m3FileOutput');
-      const flagArea = document.getElementById(isBlueCheck ? 'm3BlueResult' : 'm3FlagArea');
-
-      if (res.status === 200) {
-        const text = await res.text();
-        if (outPre) outPre.textContent = text;
-        logDos(`[FILE] 200 OK -> ${filename}`);
-        if (text.includes('FLAG{') && flagArea) {
-          const match = text.match(/FLAG\{[^}]+\}/);
-          if (match) {
-            flagArea.innerHTML = `<div class="flag-box"><span>🚩 Bandera Red Team: <strong>${match[0]}</strong></span>
-              <button onclick="quickSubmitFlag('${match[0]}')">Validar en CTF</button></div>`;
-          }
-        }
-      } else if (res.status === 403) {
-        const err = await res.json();
-        if (outPre) outPre.textContent = `[403 FORBIDDEN]\n${err.securityReason}\nRegla: ${err.remediationRule}`;
-        logDos(`[FILE BLOCKED] 403 Forbidden -> ${filename}`);
-        const bf = err.blueTeamFlag || blueFlagHeader;
-        if (bf && flagArea) {
-          flagArea.innerHTML = `<div class="flag-box blue"><span>🛡️ Bandera Blue Team: <strong>${bf}</strong></span>
-            <button onclick="quickSubmitFlag('${bf}')">Validar en CTF</button></div>`;
-        }
-      } else {
-        if (outPre) outPre.textContent = await res.text();
-      }
-    }
+    };
 
     // =========================================================================
-    // BLOC DE NOTAS XP & TERMINAL MS-DOS INTERACTIVA
+    // REGISTRO DE PARTICIPANTE Y SINCRONIZACIÓN DE JORNADA
     // =========================================================================
-    async function openInNotepad(filename) {
-      openWindow('win-notepad');
-      const area = document.getElementById('notepadContent');
-      try {
-        const res = await fetch(`/api/files/download?filename=${encodeURIComponent(filename)}&mode=${currentMode}`);
-        area.value = await res.text();
-      } catch (e) {
-        area.value = 'Error al abrir archivo: ' + e.message;
-      }
+    function openRegisterModal() {
+      document.getElementById('regAlias').value = studentAlias || '';
+      document.getElementById('regWorkstation').value = studentPc || 'Sala-UNSL';
+      document.getElementById('registerModal').classList.add('open');
     }
 
-    function logDos(msg) {
-      const el = document.getElementById('dosOutput');
-      if (!el) return;
-      el.textContent += '\n' + msg;
-      el.scrollTop = el.scrollHeight;
-    }
-
-    async function handleDosCommand(e) {
+    async function submitRegistration(e) {
       e.preventDefault();
-      const input = document.getElementById('txtDosCommand');
-      const raw = input.value.trim();
-      input.value = '';
-      if (!raw) return;
-
-      logDos(`\nC:\\UNSL\\CIBERLAB> ${raw}`);
-      const parts = raw.split(/\s+/);
-      const cmd = parts[0].toLowerCase();
-      const arg = parts.slice(1).join(' ');
-
-      if (cmd === 'cls') {
-        document.getElementById('dosOutput').textContent = 'C:\\UNSL\\CIBERLAB>';
-      } else if (cmd === 'help') {
-        logDos('Comandos: help, ctf, submit <FLAG>, cat <archivo>, curl <ruta>, unlock, cls');
-      } else if (cmd === 'ctf') {
-        const total = ctfChallenges.length || 6;
-        const done = solvedIds.length;
-        logDos(`Estado CTF: ${makeAsciiBar(done, total)} ${done}/${total} retos (${calculateScore()} pts)`);
-        ctfChallenges.forEach(c => {
-          const mark = solvedIds.includes(c.id) ? '[OK]' : '[  ]';
-          logDos(`  ${mark} ${c.id.padEnd(8)} | ${c.team.padEnd(4)} | ${c.title}`);
+      const alias = document.getElementById('regAlias').value.trim();
+      const workstation = document.getElementById('regWorkstation').value.trim() || 'Sala-UNSL';
+      try {
+        const res = await fetch('/api/ctf/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, alias, workstation })
         });
-      } else if (cmd === 'submit') {
-        const res = await submitFlag(arg);
-        logDos(res.message);
-      } else if (cmd === 'cat') {
-        if (!arg) { logDos('Uso: cat <nombre_archivo>'); return; }
-        const res = await fetch(`/api/files/download?filename=${encodeURIComponent(arg)}&mode=${currentMode}`);
-        logDos(await res.text());
-      } else if (cmd === 'curl') {
-        if (!arg || !arg.startsWith('/')) { logDos('Uso: curl /api/...'); return; }
-        const res = await fetch(arg);
-        logDos(`HTTP ${res.status}\n` + await res.text());
-      } else if (cmd === 'unlock') {
-        toggleTeacherUnlock();
-        logDos('Modo Docente alternado: ' + (teacherUnlock ? 'ACTIVADO' : 'DESACTIVADO'));
-      } else {
-        logDos(`'${cmd}' no se reconoce como un comando interno o externo.`);
+        const data = await res.json();
+        sessionId = data.sessionId;
+        studentAlias = data.alias;
+        studentPc = data.workstation;
+        localStorage.setItem('unsl_session_id', sessionId);
+        localStorage.setItem('unsl_alias', studentAlias);
+        localStorage.setItem('unsl_pc', studentPc);
+        document.getElementById('registerModal').classList.remove('open');
+        updateStudentBadge();
+        loadStoredNotes();
+      } catch (err) {
+        alert('Error registrando participante: ' + err.message);
       }
+    }
+
+    function updateStudentBadge() {
+      document.getElementById('studentAliasLabel').textContent = studentAlias || 'Sin registrar';
+      document.getElementById('studentPcLabel').textContent = studentPc || 'Sala';
+    }
+
+    async function syncClassroomState() {
+      try {
+        const res = await fetch('/api/classroom/state');
+        classroomState = await res.json();
+        document.getElementById('phaseBadge').textContent = classroomState.phaseLabel || classroomState.activePhase;
+        renderQuickPayloads();
+        applyPhaseLocks();
+      } catch (_) {}
+    }
+
+    function applyPhaseLocks() {
+      const phase = classroomState.activePhase;
+      const ctfOpen = Boolean(classroomState.ctfUnlocked);
+      const perfilTab = document.querySelector('.siu-tab[data-tab="perfil"]');
+      if (perfilTab) {
+        const locked = (phase === 'DIA_1');
+        perfilTab.classList.toggle('locked', locked);
+        perfilTab.title = locked ? 'Disponible en Día 2' : '';
+      }
+
+      const rankingBtn = document.getElementById('tabBtnRanking');
+      const scoreBadge = document.getElementById('ctfScoreBadge');
+      const submitBox = document.getElementById('ctfSubmitBox');
+      const ctfLink = document.getElementById('ctfTerminalLink');
+      if (rankingBtn) rankingBtn.style.display = ctfOpen ? 'inline-flex' : 'none';
+      if (scoreBadge) scoreBadge.style.display = ctfOpen ? 'inline-block' : 'none';
+      if (submitBox) submitBox.style.display = ctfOpen ? 'block' : 'none';
+      if (ctfLink) ctfLink.style.display = ctfOpen ? 'inline-flex' : 'none';
+
+      if (!ctfOpen && document.getElementById('tab-ranking')?.classList.contains('active')) {
+        switchTab('certificados');
+      }
+    }
+
+    // =========================================================================
+    // NAVEGACIÓN Y TUTOR
+    // =========================================================================
+    function switchTab(tabId, fromSync = false) {
+      const btn = document.querySelector(`.siu-tab[data-tab="${tabId}"]`);
+      if (btn && btn.classList.contains('locked')) {
+        updateTelemetry('JORNADA BLOQUEADA', 'Este módulo se habilitará en el <strong>Día 2</strong> desde el Panel Docente.');
+        return;
+      }
+      document.querySelectorAll('.siu-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
+
+      if (tabId === 'certificados') { loadPublicFiles(); if (!fromSync) selectStoryStep(1, true); }
+      if (tabId === 'acceso' && !fromSync) { selectStoryStep(2, true); }
+      if (tabId === 'perfil') { loadStoredNotes(); if (!fromSync) selectStoryStep(3, true); }
+      if (tabId === 'ranking') { loadLeaderboard(); loadChallengesList(); }
+    }
+
+    function selectStoryStep(step, fromTab = false) {
+      currentStep = step;
+      hintLevel = 0;
+      document.getElementById('hintDisplayBox').innerHTML = '';
+      document.getElementById('btnNextHint').textContent = '💡 Ver Pista (Nivel 1/3)';
+      const data = STORY_STEPS[step];
+      document.getElementById('tutorBarTitle').textContent = data.title;
+      document.getElementById('storyContent').innerHTML = data.html;
+      [1, 2, 3].forEach(n => document.getElementById('chip-' + n).classList.toggle('active', n === step));
+      renderQuickPayloads();
+      if (!fromTab) switchTab(data.tab, true);
+    }
+
+    function renderQuickPayloads() {
+      const container = document.getElementById('quickPayloadButtons');
+      const showDemo = Boolean(classroomState.demoModeEnabled);
+      container.style.display = showDemo ? 'flex' : 'none';
+      container.innerHTML = '';
+      if (!showDemo) return;
+      (STORY_STEPS[currentStep]?.demoPayloads || []).forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-siu btn-danger';
+        btn.style.fontSize = '11.5px';
+        btn.textContent = p.label;
+        btn.onclick = p.action;
+        container.appendChild(btn);
+      });
+    }
+
+    function revealNextHint() {
+      const hints = STORY_STEPS[currentStep].hints;
+      if (hintLevel < hints.length) {
+        hintLevel++;
+        document.getElementById('hintDisplayBox').innerHTML = hints.slice(0, hintLevel).map(h => `<div style="margin-top:3px;">• ${h}</div>`).join('');
+        document.getElementById('btnNextHint').textContent = hintLevel < hints.length
+          ? `💡 Ver Pista (Nivel ${hintLevel + 1}/3)`
+          : '💡 Todas las pistas visibles';
+      }
+    }
+
+    function toggleTutorDrawer() {
+      const bar = document.getElementById('tutorBar');
+      bar.classList.toggle('open');
+      document.getElementById('tutorToggleArrow').textContent = bar.classList.contains('open') ? '▼ Ocultar' : '▲ Abrir Tutor';
+    }
+
+    function setSecurityMode(mode) {
+      securityMode = mode;
+      document.getElementById('btnModeVuln').className = 'mode-btn' + (mode === 'vuln' ? ' active-vuln' : '');
+      document.getElementById('btnModeSafe').className = 'mode-btn' + (mode === 'safe' ? ' active-safe' : '');
+      updateTelemetry('MODO ACTUAL', mode === 'vuln' ? '🔴 VULNERABLE (Red Team)' : '🛡️ SEGURO (Blue Team)');
+      if (document.getElementById('tab-perfil').classList.contains('active')) loadStoredNotes();
+    }
+
+    function updateTelemetry(title, details) {
+      document.getElementById('telemetryLog').innerHTML =
+        `<div><span style="color:#34d399;">[${new Date().toLocaleTimeString()}]</span> <strong>${escapeHtml(title)}</strong></div>`
+        + `<div style="margin-top:3px;">${details}</div>`;
+    }
+
+    function toggleDiff(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === 'none' ? 'grid' : 'none';
+    }
+
+    // =========================================================================
+    // MÓDULO 1: PATH TRAVERSAL
+    // =========================================================================
+    async function loadPublicFiles() {
+      const listEl = document.getElementById('publicFilesList');
+      try {
+        const res = await fetch('/api/files/list');
+        const data = await res.json();
+        listEl.innerHTML = (data.files || []).map(f => `
+          <button type="button" class="btn-siu btn-secondary" style="margin:3px 6px 3px 0; font-size:12px;"
+                  onclick="document.getElementById('filenameInput').value='${escapeHtml(f.filename)}'; handleFileDownload();">
+            📄 ${escapeHtml(f.filename)} (${f.sizeBytes} B)
+          </button>`).join('') || '<em>Sin archivos.</em>';
+      } catch (err) {
+        listEl.innerHTML = '<span style="color:#dc2626;">Error listando archivos.</span>';
+      }
+    }
+
+    async function handleFileDownload(e) {
+      if (e) e.preventDefault();
+      const filename = document.getElementById('filenameInput').value.trim();
+      const out = document.getElementById('fileDownloadOutput');
+      const url = `/api/files/download?filename=${encodeURIComponent(filename)}&mode=${securityMode}`;
+
+      try {
+        const res = await fetch(url);
+        const modeHeader = res.headers.get('X-PurpleTeam-Mode') || securityMode;
+        const resolvedPath = res.headers.get('X-PurpleTeam-Resolved-Path') || '-';
+        updateTelemetry(`GET ${url}`, `HTTP ${res.status} | ${escapeHtml(modeHeader)}<br>Ruta resuelta: <code>${escapeHtml(resolvedPath)}</code>`);
+
+        if (res.status === 403) {
+          const ct = res.headers.get('Content-Type') || '';
+          if (ct.includes('application/json')) {
+            const errJson = await res.json();
+            out.innerHTML = `<div class="alert-box alert-success"><strong>🛡️ BLOQUEO BLUE TEAM (403 Forbidden)</strong><br>${escapeHtml(errJson.securityReason)}<br><code>${escapeHtml(errJson.remediationRule)}</code>${errJson.blueTeamFlag ? `<br><strong>Bandera:</strong> <code>${escapeHtml(errJson.blueTeamFlag)}</code>` : ''}</div>`;
+            if (errJson.blueTeamFlag) autoSubmitFlag(errJson.blueTeamFlag);
+          } else {
+            const txt = await res.text();
+            out.innerHTML = `<div class="alert-box alert-warn">${escapeHtml(txt)}</div>`;
+          }
+          return;
+        }
+
+        const text = await res.text();
+        if (!res.ok) {
+          out.innerHTML = `<div class="alert-box alert-danger">${escapeHtml(text)}<br><small>Feedback: Verifica la cantidad de niveles <code>../</code> desde <code>/storage/public/</code>.</small></div>`;
+          return;
+        }
+
+        const flagMatch = text.match(/FLAG\{[^}]+\}/);
+        let banner = '';
+        if (flagMatch) {
+          autoSubmitFlag(flagMatch[0]);
+          document.getElementById('chip-1').classList.add('completed');
+          banner = `<div class="alert-box alert-info"><strong>🎉 ¡Archivo confidencial leído!</strong> Bandera: <code>${escapeHtml(flagMatch[0])}</code></div>`;
+        }
+        out.innerHTML = banner + `<pre class="code-viewer">${escapeHtml(text)}</pre>`;
+      } catch (err) {
+        out.innerHTML = `<div class="alert-box alert-danger">Error de red: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO 2: SQL INJECTION
+    // =========================================================================
+    function handleStudentLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUsername').value.trim();
+      document.getElementById('directorySearchInput').value = user;
+      executeUserSearch(true);
+    }
+
+    async function executeUserSearch(isFromLogin = false) {
+      const username = (isFromLogin ? document.getElementById('loginUsername').value : document.getElementById('directorySearchInput').value).trim();
+      const url = `/api/users/search?username=${encodeURIComponent(username)}&mode=${securityMode}`;
+      const targetEl = document.getElementById(isFromLogin ? 'sqliResultArea' : 'directorySearchResults');
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        updateTelemetry(`GET ${url}`, `HTTP ${res.status} | ${escapeHtml(data.mode || '')}<br>SQL: <code>${escapeHtml(data.executedQuery || '')}</code>`);
+
+        if (data.status === 'SQL_ERROR') {
+          targetEl.innerHTML = `<div class="alert-box alert-danger"><strong>Error SQL:</strong> ${escapeHtml(data.errorMessage)}<br><small>Feedback formativo: Revisa las comillas simples, el número de columnas en UNION (deben ser 5) o si intentaste un comando de escritura bloqueado por el usuario Read-Only.</small></div>`;
+          return;
+        }
+
+        if (data.blueTeamFlag) autoSubmitFlag(data.blueTeamFlag);
+        if (data.redTeamFlag) { autoSubmitFlag(data.redTeamFlag); document.getElementById('chip-2').classList.add('completed'); }
+        if (data.unionFlag) autoSubmitFlag(data.unionFlag);
+
+        let html = '';
+        if (data.mode && data.mode.includes('REMEDIATED')) {
+          html += `<div class="alert-box alert-success"><strong>🛡️ Consulta Parametrizada</strong><br>${escapeHtml(data.securityAnalysis)}<br>Bandera: <code>${escapeHtml(data.blueTeamFlag)}</code></div>`;
+        } else if (data.rowCount > 1) {
+          activateSession(data.users[0].username, data.users[0].role);
+          html += `<div class="alert-box alert-info"><strong>🔓 ¡Inyección SQL exitosa!</strong> Se devolvieron ${data.rowCount} filas.${data.unionFlag ? ` Bandera UNION: <code>${escapeHtml(data.unionFlag)}</code>` : ''}</div>`;
+        } else if (data.rowCount === 1) {
+          activateSession(data.users[0].username, data.users[0].role);
+        } else {
+          html += `<div class="alert-box alert-warn">0 resultados para <code>${escapeHtml(username)}</code>.</div>`;
+        }
+
+        if (data.users && data.users.length > 0) {
+          const hasSecrets = data.users[0].password !== undefined;
+          html += `<table class="siu-table"><thead><tr><th>ID</th><th>Usuario</th><th>Rol</th>${hasSecrets ? '<th>Password / Secreto</th><th>DNI/SSN</th>' : ''}</tr></thead><tbody>`;
+          data.users.forEach(u => {
+            html += `<tr><td>${escapeHtml(u.id)}</td><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.role)}</td>${hasSecrets ? `<td style="color:#dc2626;font-family:monospace;">${escapeHtml(u.password)}</td><td>${escapeHtml(u.ssn)}</td>` : ''}</tr>`;
+          });
+          html += `</tbody></table>`;
+        }
+        targetEl.innerHTML = html;
+      } catch (err) {
+        targetEl.innerHTML = `<div class="alert-box alert-danger">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function executeBlindCheck() {
+      const username = document.getElementById('blindInput').value.trim();
+      const target = document.getElementById('blindResultArea');
+      const url = `/api/users/check?username=${encodeURIComponent(username)}&mode=${securityMode}`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        updateTelemetry(`GET ${url}`, `Blind SQLi exists=${data.exists} | ${escapeHtml(data.mode || '')}`);
+        if (data.blueTeamFlag) autoSubmitFlag(data.blueTeamFlag);
+        target.innerHTML = `<div class="alert-box ${data.exists ? 'alert-info' : 'alert-warn'}">Resultado booleano: <strong>exists = ${data.exists}</strong> ${data.blindHint ? `<br><small>${escapeHtml(data.blindHint)}</small>` : ''}</div>`;
+      } catch (err) {
+        target.innerHTML = `<div class="alert-box alert-danger">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function activateSession(username, role) {
+      document.getElementById('sessionUsername').textContent = username;
+      document.getElementById('sessionRole').textContent = role || 'STUDENT';
+      document.getElementById('sessionPill').classList.add('active');
+    }
+    function logoutSession() {
+      document.getElementById('sessionPill').classList.remove('active');
+      document.getElementById('sqliResultArea').innerHTML = '';
+    }
+
+    // =========================================================================
+    // MÓDULO 3: XSS REFLEJADO Y ALMACENADO EN SERVIDOR
+    // =========================================================================
+    async function handleXssReflected(e) {
+      if (e) e.preventDefault();
+      const name = document.getElementById('xssNameInput').value || 'Invitado';
+      const url = `/api/profile/greet?name=${encodeURIComponent(name)}&mode=${securityMode}`;
+      const preview = document.getElementById('xssReflectedPreview');
+      try {
+        const res = await fetch(url);
+        const csp = res.headers.get('Content-Security-Policy') || 'ABSENT';
+        const redFlag = res.headers.get('X-PurpleTeam-Red-Flag');
+        const blueFlag = res.headers.get('X-PurpleTeam-Blue-Flag');
+        updateTelemetry(`GET ${url}`, `HTTP ${res.status} | CSP: <code>${escapeHtml(csp)}</code>`);
+
+        const htmlBody = await res.text();
+        if (redFlag) { autoSubmitFlag(redFlag); document.getElementById('chip-3').classList.add('completed'); }
+        if (blueFlag) autoSubmitFlag(blueFlag);
+
+        let alertHtml = '';
+        if (redFlag) alertHtml = `<div class="alert-box alert-info"><strong>🎉 ¡XSS Reflejado detectado!</strong> Bandera: <code>${escapeHtml(redFlag)}</code></div>`;
+        else if (blueFlag) alertHtml = `<div class="alert-box alert-success"><strong>🛡️ Mitigado con OWASP Encoder + CSP</strong> Bandera: <code>${escapeHtml(blueFlag)}</code></div>`;
+
+        preview.innerHTML = alertHtml + `<iframe sandbox="allow-scripts allow-modals" title="Saludo" style="width:100%; height:240px; border:1px solid #cbd5e1; border-radius:4px; margin-top:8px; background:#fff;" srcdoc="${htmlBody.replace(/"/g, '&quot;')}"></iframe>`;
+      } catch (err) {
+        preview.innerHTML = `<div class="alert-box alert-danger">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function handleXssStored(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('xssStoredInput');
+      const content = input.value.trim();
+      if (!content) return;
+      try {
+        const res = await fetch('/api/profile/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lab-Session': sessionId || 'default' },
+          body: JSON.stringify({ author: studentAlias || 'Alumno UNSL', content, mode: securityMode })
+        });
+        const data = await res.json();
+        input.value = '';
+        if (data.redTeamFlag) {
+          autoSubmitFlag(data.redTeamFlag);
+          document.getElementById('xssStoredFeedback').innerHTML = `<div class="alert-box alert-info"><strong>🎉 ¡XSS Almacenado persistido en BD!</strong> Bandera: <code>${escapeHtml(data.redTeamFlag)}</code></div>`;
+        } else if (data.blueTeamFlag) {
+          autoSubmitFlag(data.blueTeamFlag);
+          document.getElementById('xssStoredFeedback').innerHTML = `<div class="alert-box alert-success"><strong>🛡️ Nota sanitizada antes de persistir</strong> Bandera: <code>${escapeHtml(data.blueTeamFlag)}</code></div>`;
+        }
+        await loadStoredNotes();
+      } catch (err) {
+        document.getElementById('xssStoredFeedback').innerHTML = `<div class="alert-box alert-danger">Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function loadStoredNotes() {
+      const wall = document.getElementById('xssStoredWall');
+      try {
+        const res = await fetch('/api/profile/notes', { headers: { 'X-Lab-Session': sessionId || 'default' } });
+        const data = await res.json();
+        if (!data.notes || data.notes.length === 0) {
+          wall.innerHTML = '<em style="color:#6b7280; font-size:12.5px;">No hay observaciones guardadas para tu sesión.</em>';
+          return;
+        }
+        wall.innerHTML = '';
+        data.notes.forEach(n => {
+          const item = document.createElement('div');
+          item.className = 'xss-wall-item';
+          const meta = document.createElement('div');
+          meta.style.cssText = 'font-size:11.5px; color:#64748b; margin-bottom:4px;';
+          meta.textContent = `${n.author} (${n.created_at})`;
+          const body = document.createElement('div');
+          if (securityMode === 'vuln') body.innerHTML = n.content;
+          else body.textContent = n.content;
+          item.appendChild(meta);
+          item.appendChild(body);
+          wall.appendChild(item);
+        });
+      } catch (_) {}
+    }
+
+    async function clearStoredNotes() {
+      await fetch('/api/profile/notes', { method: 'DELETE', headers: { 'X-Lab-Session': sessionId || 'default' } });
+      document.getElementById('xssStoredFeedback').innerHTML = '';
+      loadStoredNotes();
+    }
+
+    // =========================================================================
+    // CUESTIONARIOS FORMATIVOS
+    // =========================================================================
+    async function loadQuiz(moduleId) {
+      const container = document.getElementById(`quizBody-${moduleId}`);
+      try {
+        const res = await fetch(`/api/ctf/quiz/${moduleId}`);
+        const data = await res.json();
+        let html = `<form onsubmit="submitQuiz(event, '${moduleId}')">`;
+        data.questions.forEach((q, idx) => {
+          html += `<div class="quiz-q"><div style="font-weight:600; font-size:13px;">${idx + 1}. ${escapeHtml(q.prompt)}</div>`;
+          q.options.forEach((opt, optIdx) => {
+            html += `<label class="quiz-opt"><input type="radio" name="${q.id}" value="${optIdx}" required> <span>${escapeHtml(opt)}</span></label>`;
+          });
+          html += `</div>`;
+        });
+        html += `<button type="submit" class="btn-siu">Validar Respuestas</button></form><div id="quizResult-${moduleId}"></div>`;
+        container.innerHTML = html;
+      } catch (_) {
+        container.innerHTML = '<em>Error cargando cuestionario.</em>';
+      }
+    }
+
+    async function submitQuiz(e, moduleId) {
+      e.preventDefault();
+      const form = e.target;
+      const answers = {};
+      new FormData(form).forEach((val, key) => { answers[key] = val; });
+      const res = await fetch('/api/ctf/quiz/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Lab-Session': sessionId || '' },
+        body: JSON.stringify({ moduleId, sessionId, answers })
+      });
+      const data = await res.json();
+      const out = document.getElementById(`quizResult-${moduleId}`);
+      out.innerHTML = `<div class="alert-box ${data.passed ? 'alert-success' : 'alert-warn'}">
+        <strong>Resultado: ${data.score}/${data.total} correctas</strong>
+        ${data.feedback.map(f => `<div style="margin-top:6px;">${f.correct ? '✅' : '❌'} ${escapeHtml(f.explanation)}</div>`).join('')}
+      </div>`;
+    }
+
+    // =========================================================================
+    // RANKING EN TIEMPO REAL Y CTF
+    // =========================================================================
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch('/api/ctf/leaderboard');
+        const data = await res.json();
+        const rows = data.leaderboard || [];
+        const podium = document.getElementById('podiumGrid');
+        const medals = ['🥇 1° Puesto', '🥈 2° Puesto', '🥉 3° Puesto'];
+        podium.innerHTML = [0, 1, 2].map(i => {
+          const r = rows[i];
+          return `<div class="podium-card podium-${i + 1}">
+            <div class="podium-rank">${medals[i]}</div>
+            <div class="podium-alias">${r ? escapeHtml(r.alias) : 'Vacante'}</div>
+            <div style="font-size:12px; color:#64748b;">${r ? escapeHtml(r.workstation) : '-'}</div>
+            <div class="podium-pts">${r ? r.points + ' pts · ' + escapeHtml(r.elapsedFormatted || '--:--') : '0 pts'}</div>
+          </div>`;
+        }).join('');
+
+        const tbody = document.getElementById('leaderboardTableBody');
+        tbody.innerHTML = rows.length ? rows.map(r => `
+          <tr>
+            <td><strong>#${r.rank}</strong></td>
+            <td>${escapeHtml(r.alias)}</td>
+            <td>${escapeHtml(r.workstation)}</td>
+            <td>${r.solvedCount}</td>
+            <td>${(r.passedQuizzes || []).length}</td>
+            <td>${escapeHtml(r.elapsedFormatted || '--:--')} <small style="color:#64748b;">(${escapeHtml(r.lastSolveTime || '')})</small></td>
+            <td><strong>${r.points} pts</strong></td>
+          </tr>`).join('') : '<tr><td colspan="7" style="text-align:center; color:#6b7280;">Aún no hay participantes registrados.</td></tr>';
+      } catch (_) {}
+    }
+
+    async function loadChallengesList() {
+      try {
+        const res = await fetch('/api/ctf/challenges');
+        const data = await res.json();
+        maxScore = data.maxPoints;
+        totalChallengesCount = data.totalChallenges;
+        updateCtfBadge();
+        document.getElementById('challengesListArea').innerHTML = `<table class="siu-table">
+          <thead><tr><th>Día</th><th>CWE</th><th>Equipo</th><th>Reto</th><th>Puntos</th><th>Estado</th></tr></thead>
+          <tbody>${data.challenges.map(c => `<tr>
+            <td>Día ${c.dayNumber}</td><td><code>${escapeHtml(c.cwe)}</code></td><td><strong>${escapeHtml(c.team)}</strong></td>
+            <td><strong>${escapeHtml(c.title)}</strong><br><small style="color:#64748b;">${escapeHtml(c.description)}</small></td>
+            <td>${c.points}</td>
+            <td>${capturedFlags.some((_, idx) => false) ? '' : ''}<span id="status-${c.id}">${(window.solvedChallengeIds || []).includes(c.id) ? '✅ Resuelto' : '⏳ Pendiente'}</span></td>
+          </tr>`).join('')}</tbody></table>`;
+      } catch (_) {}
+    }
+
+    function toggleProjectorMode() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    }
+
+    async function autoSubmitFlag(flag) {
+      if (!classroomState.ctfUnlocked || !flag || capturedFlags.includes(flag)) return;
+      await submitFlagToServer(flag);
+    }
+
+    async function submitFlagManual() {
+      const flag = document.getElementById('flagInput').value.trim();
+      if (flag) await submitFlagToServer(flag);
+    }
+
+    async function submitFlagToServer(flag) {
+      const feedback = document.getElementById('flagFeedback');
+      try {
+        const res = await fetch('/api/ctf/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Lab-Session': sessionId || '' },
+          body: JSON.stringify({ flag, sessionId })
+        });
+        const data = await res.json();
+        if (data.valid) {
+          if (!capturedFlags.includes(flag)) {
+            capturedFlags.push(flag);
+            totalPoints += data.points;
+            localStorage.setItem('unsl_ctf_flags', JSON.stringify(capturedFlags));
+            localStorage.setItem('unsl_ctf_points', String(totalPoints));
+          }
+          window.solvedChallengeIds = Array.from(new Set([...(window.solvedChallengeIds || []), data.challengeId]));
+          feedback.innerHTML = `<span style="color:#34d399;">✅ ${escapeHtml(data.title)} (+${data.points} pts)</span>`;
+          document.getElementById('flagInput').value = '';
+          updateCtfBadge();
+        } else {
+          feedback.innerHTML = `<span style="color:#f87171;">❌ ${escapeHtml(data.message)}</span>`;
+        }
+      } catch (err) {
+        feedback.innerHTML = `<span style="color:#f87171;">Error validando bandera.</span>`;
+      }
+    }
+
+    function updateCtfBadge() {
+      document.getElementById('ctfScoreBadge').textContent = `CTF: ${totalPoints} / ${maxScore} pts (${capturedFlags.length}/${totalChallengesCount})`;
+    }
+
+    // =========================================================================
+    // MANUAL Y PANEL DOCENTE
+    // =========================================================================
+    async function unlockAyudaManual(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('ayudaPasswordInput').value;
+      const res = await fetch('/api/ctf/unlock-help', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      if (res.ok) {
+        sessionStorage.setItem('unsl_ayuda_unlocked', 'true');
+        document.getElementById('ayudaLockGate').style.display = 'none';
+        document.getElementById('ayudaManualContent').style.display = 'block';
+      } else {
+        document.getElementById('ayudaPasswordError').textContent = 'Clave incorrecta. [AUTH_FAILED]';
+      }
+    }
+
+    async function authDocente(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('docentePwdInput').value;
+      const res = await fetch('/api/docente/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      });
+      if (res.ok) {
+        docentePassword = pwd;
+        sessionStorage.setItem('unsl_docente_pwd', pwd);
+        const data = await res.json();
+        showDocenteControls(data.state);
+      } else {
+        document.getElementById('docenteAuthError').textContent = 'Clave docente incorrecta.';
+      }
+    }
+
+    function showDocenteControls(state) {
+      document.getElementById('docenteAuthBox').style.display = 'none';
+      document.getElementById('docenteControlsBox').style.display = 'block';
+      document.getElementById('docentePhaseSelect').value = state.activePhase;
+      document.getElementById('docenteDemoToggle').checked = Boolean(state.demoModeEnabled);
+      document.getElementById('docenteCtfToggle').checked = Boolean(state.ctfUnlocked);
+    }
+
+    async function updateDocentePhase() {
+      const phase = document.getElementById('docentePhaseSelect').value;
+      const demoMode = document.getElementById('docenteDemoToggle').checked;
+      const ctfUnlocked = document.getElementById('docenteCtfToggle').checked;
+      const res = await fetch('/api/docente/phase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Docente-Password': docentePassword },
+        body: JSON.stringify({ phase, demoMode, ctfUnlocked })
+      });
+      if (res.ok) {
+        classroomState = await res.json();
+        document.getElementById('phaseBadge').textContent = classroomState.phaseLabel;
+        renderQuickPayloads();
+        applyPhaseLocks();
+        document.getElementById('docenteFeedback').innerHTML = `<span style="color:#059669;">✅ Estado actualizado: ${escapeHtml(classroomState.phaseLabel)}</span>`;
+      }
+    }
+
+    async function resetClassLeaderboard() {
+      if (!confirm('¿Reiniciar todos los puntajes del Ranking CTF para iniciar la competencia?')) return;
+      const res = await fetch('/api/docente/reset-leaderboard', {
+        method: 'POST',
+        headers: { 'X-Docente-Password': docentePassword }
+      });
+      if (res.ok) {
+        document.getElementById('docenteFeedback').innerHTML = '<span style="color:#059669;">✅ Ranking reiniciado.</span>';
+        loadLeaderboard();
+      }
+    }
+
+    function exportLeaderboardCsv() {
+      window.location.href = `/api/docente/export-csv?password=${encodeURIComponent(docentePassword)}`;
+    }
+
+    function downloadSessionReport() {
+      const content = [
+        'REPORTE DE EVIDENCIA - TALLER SEGURIDAD WEB UNSL',
+        `Fecha: ${new Date().toLocaleString()}`,
+        `Participante: ${studentAlias || 'No registrado'} (${studentPc})`,
+        `Puntaje CTF: ${totalPoints} / ${maxScore} pts`,
+        `Banderas Capturadas (${capturedFlags.length}):`,
+        ...capturedFlags.map(f => ` - ${f}`)
+      ].join('\n');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `evidencia_ciberlab_${(studentAlias || 'alumno').replace(/\s+/g, '_')}.txt`;
+      a.click();
+    }
+
+    function resetProgress() {
+      capturedFlags = [];
+      totalPoints = 0;
+      localStorage.removeItem('unsl_ctf_flags');
+      localStorage.removeItem('unsl_ctf_points');
+      updateCtfBadge();
+      updateTelemetry('REINICIO LOCAL', 'Progreso local reiniciado.');
     }
 
     function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // Inicialización al cargar la página
-    window.addEventListener('DOMContentLoaded', async () => {
-      await loadCtfChallenges();
-      navigateRetro('home');
-      openWindow('win-ie');
-      updateTaskbar();
+    // INICIALIZACIÓN
+    window.addEventListener('DOMContentLoaded', () => {
+      updateStudentBadge();
+      updateCtfBadge();
+      loadPublicFiles();
+      loadQuiz('m1');
+      loadQuiz('m2');
+      loadQuiz('m3');
+      selectStoryStep(1, true);
+      syncClassroomState();
+      if (!sessionId || !studentAlias) openRegisterModal();
+      if (sessionStorage.getItem('unsl_ayuda_unlocked') === 'true') {
+        document.getElementById('ayudaLockGate').style.display = 'none';
+        document.getElementById('ayudaManualContent').style.display = 'block';
+      }
+      if (docentePassword) {
+        fetch('/api/docente/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: docentePassword })
+        }).then(r => r.ok ? r.json() : null).then(d => { if (d && d.authenticated) showDocenteControls(d.state); });
+      }
+      setInterval(() => {
+        syncClassroomState();
+        if (document.getElementById('tab-ranking').classList.contains('active')) loadLeaderboard();
+      }, 6000);
     });
   </script>
 </body>

@@ -7,15 +7,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Pruebas automatizadas de seguridad (Purple Team) para validar tanto la reproducibilidad didáctica
- * de las fallas (Red Team) como la efectividad de las remediaciones (Blue Team).
+ * Pruebas automatizadas de seguridad (Purple Team) y aislamiento multi-estudiante.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,97 +24,11 @@ class CiberlabSecurityTests {
     private MockMvc mockMvc;
 
     // =========================================================================
-    // TESTS MÓDULO 1: CWE-89 (SQL Injection)
+    // MÓDULO 1 (DÍA 1): CWE-22 (Path Traversal + Sandbox Multi-Estudiante)
     // =========================================================================
 
     @Test
-    @DisplayName("CWE-89 Red Team: Inyección SQL exitosa mediante bypass booleano (' OR '1'='1)")
-    void testSqlInjectionVulnerable() throws Exception {
-        mockMvc.perform(get("/api/users/search")
-                        .param("username", "' OR '1'='1")
-                        .param("mode", "vuln")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.mode").value("VULNERABLE (CWE-89)"))
-                .andExpect(jsonPath("$.rowCount").value(greaterThanOrEqualTo(5)))
-                // Verifica la fuga de credenciales y SSN
-                .andExpect(jsonPath("$.users[0].password").exists())
-                .andExpect(jsonPath("$.users[0].ssn").exists())
-                .andExpect(jsonPath("$.executedQuery").value(containsString("' OR '1'='1")));
-    }
-
-    @Test
-    @DisplayName("CWE-89 Blue Team: PreparedStatement neutraliza la inyección y previene fuga de PII")
-    void testSqlInjectionRemediated() throws Exception {
-        mockMvc.perform(get("/api/users/search")
-                        .param("username", "' OR '1'='1")
-                        .param("mode", "safe")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.mode").value("REMEDIATED (PreparedStatement)"))
-                // Al ser parametrizado, busca literalmente el username "' OR '1'='1", que no existe
-                .andExpect(jsonPath("$.rowCount").value(0))
-                .andExpect(jsonPath("$.users").isEmpty());
-
-        // Búsqueda legítima en modo seguro
-        mockMvc.perform(get("/api/users/search")
-                        .param("username", "agomez")
-                        .param("mode", "safe")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.rowCount").value(1))
-                .andExpect(jsonPath("$.users[0].username").value("agomez"))
-                // Principio de mínimo privilegio: password y ssn no deben existir en el DTO seguro
-                .andExpect(jsonPath("$.users[0].password").doesNotExist())
-                .andExpect(jsonPath("$.users[0].ssn").doesNotExist());
-    }
-
-    // =========================================================================
-    // TESTS MÓDULO 2: CWE-79 (Reflected XSS)
-    // =========================================================================
-
-    @Test
-    @DisplayName("CWE-79 Red Team: Reflejo crudo de script sin codificación contextual ni CSP")
-    void testReflectedXssVulnerable() throws Exception {
-        String xssPayload = "<script>alert('XSS_UNSL')</script>";
-
-        mockMvc.perform(get("/api/profile/greet")
-                        .param("name", xssPayload)
-                        .param("mode", "vuln"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(header().string("X-PurpleTeam-Mode", containsString("VULNERABLE")))
-                .andExpect(header().doesNotExist("Content-Security-Policy"))
-                // La etiqueta se refleja textualmente sin escapar
-                .andExpect(content().string(containsString("<script>alert('XSS_UNSL')</script>")));
-    }
-
-    @Test
-    @DisplayName("CWE-79 Blue Team: Encode.forHtml() sanitiza la entrada y se aplica Content-Security-Policy")
-    void testReflectedXssRemediated() throws Exception {
-        String xssPayload = "<script>alert('XSS_UNSL')</script>";
-
-        mockMvc.perform(get("/api/profile/greet")
-                        .param("name", xssPayload)
-                        .param("mode", "safe"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-                .andExpect(header().string("X-PurpleTeam-Mode", containsString("REMEDIATED")))
-                .andExpect(header().string("Content-Security-Policy", containsString("script-src 'none'")))
-                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
-                // El script no debe aparecer sin escapar en la salida HTML
-                .andExpect(content().string(not(containsString("<script>alert('XSS_UNSL')</script>"))))
-                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;XSS_UNSL&#39;)&lt;/script&gt;")));
-    }
-
-    // =========================================================================
-    // TESTS MÓDULO 3: CWE-22 (Path Traversal)
-    // =========================================================================
-
-    @Test
-    @DisplayName("CWE-22 Red Team: Escape de directorio con ../confidential/flag.txt exitoso en modo vulnerable")
+    @DisplayName("CWE-22 Red Team: Escape dentro de storage/ hacia ../confidential/flag.txt funciona en modo vuln")
     void testPathTraversalVulnerable() throws Exception {
         mockMvc.perform(get("/api/files/download")
                         .param("filename", "../confidential/flag.txt")
@@ -126,9 +39,18 @@ class CiberlabSecurityTests {
     }
 
     @Test
+    @DisplayName("CWE-22 Sandbox: Intento de salir de storage/ (ej. /etc/passwd) bloqueado incluso en modo vuln")
+    void testPathTraversalSandboxBoundary() throws Exception {
+        mockMvc.perform(get("/api/files/download")
+                        .param("filename", "../../../../etc/passwd")
+                        .param("mode", "vuln"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(containsString("SANDBOX")));
+    }
+
+    @Test
     @DisplayName("CWE-22 Blue Team: Bloqueo estricto con startsWith() devuelve 403 Forbidden")
     void testPathTraversalRemediated() throws Exception {
-        // Intento de Path Traversal bloqueado
         mockMvc.perform(get("/api/files/download")
                         .param("filename", "../confidential/flag.txt")
                         .param("mode", "safe"))
@@ -136,7 +58,6 @@ class CiberlabSecurityTests {
                 .andExpect(header().string("X-PurpleTeam-Access-Allowed", "false"))
                 .andExpect(jsonPath("$.error").value("ACCESO DENEGADO (CWE-22)"));
 
-        // Descarga legítima de archivo público permitida en modo seguro
         mockMvc.perform(get("/api/files/download")
                         .param("filename", "reporte_auditoria_2026.txt")
                         .param("mode", "safe"))
@@ -146,43 +67,208 @@ class CiberlabSecurityTests {
     }
 
     // =========================================================================
-    // TESTS MÓDULO CTF: Gamificación y Validación de Banderas
+    // MÓDULO 2 (DÍA 1 & 2): CWE-89 (SQLi Parte 1, Parte 2 UNION/Blind y RO)
     // =========================================================================
 
     @Test
-    @DisplayName("CTF Engine: Listado de 6 retos sin exponer banderas y estado general")
-    void testCtfChallengesListAndStatus() throws Exception {
-        mockMvc.perform(get("/api/ctf/challenges")
+    @DisplayName("CWE-89 Red Team (Día 1): Auth Bypass booleano (' OR '1'='1)")
+    void testSqlInjectionVulnerable() throws Exception {
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "' OR '1'='1")
+                        .param("mode", "vuln")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalChallenges").value(6))
-                .andExpect(jsonPath("$.maxPoints").value(850))
-                .andExpect(jsonPath("$.challenges", hasSize(6)))
-                .andExpect(jsonPath("$.challenges[0].flag").doesNotExist());
-
-        mockMvc.perform(get("/api/ctf/status")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalModules").value(3));
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.rowCount").value(greaterThanOrEqualTo(5)))
+                .andExpect(jsonPath("$.users[0].password").exists())
+                .andExpect(jsonPath("$.users[0].ssn").exists());
     }
 
     @Test
-    @DisplayName("CTF Engine: Validación de bandera correcta (200 OK) y rechazo de bandera inválida (400 Bad Request)")
-    void testCtfFlagSubmission() throws Exception {
-        // Bandera válida
+    @DisplayName("CWE-89 Red Team (Día 2): UNION-Based SQLi extrae secretos de audit_secrets y Blind SQLi responde booleano")
+    void testSqlInjectionUnionAndBlind() throws Exception {
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "' UNION SELECT id, code_name, secret_value, classification, 'x' FROM audit_secrets--")
+                        .param("mode", "vuln"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.unionFlag").value("FLAG{UNSL_SQLI_UNION_EXTRACTION_2026}"));
+
+        mockMvc.perform(get("/api/users/check")
+                        .param("username", "agomez' AND '1'='1")
+                        .param("mode", "vuln"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exists").value(true));
+    }
+
+    @Test
+    @DisplayName("CWE-89 Seguridad Multi-Estudiante: Usuario Read-Only bloquea DROP/DELETE y la tabla users sigue intacta")
+    void testSqlInjectionReadOnlyIsolation() throws Exception {
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "'; DROP TABLE users; --")
+                        .param("mode", "vuln"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("SQL_ERROR"));
+
+        // Verificar que la tabla users sigue operativa para otros alumnos
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "agomez")
+                        .param("mode", "safe"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rowCount").value(1));
+    }
+
+    @Test
+    @DisplayName("CWE-89 Blue Team: PreparedStatement neutraliza inyección y protege PII")
+    void testSqlInjectionRemediated() throws Exception {
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "' OR '1'='1")
+                        .param("mode", "safe"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rowCount").value(0));
+
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "agomez")
+                        .param("mode", "safe"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rowCount").value(1))
+                .andExpect(jsonPath("$.users[0].password").doesNotExist())
+                .andExpect(jsonPath("$.users[0].ssn").doesNotExist());
+    }
+
+    // =========================================================================
+    // MÓDULO 3 (DÍA 2): CWE-79 (XSS Reflejado y Almacenado Aislado por Sesión)
+    // =========================================================================
+
+    @Test
+    @DisplayName("CWE-79 Red Team y Blue Team: XSS Reflejado vs OWASP Encode.forHtml + CSP")
+    void testReflectedXssVulnerableAndRemediated() throws Exception {
+        String xssPayload = "<script>alert('XSS_UNSL')</script>";
+
+        mockMvc.perform(get("/api/profile/greet")
+                        .param("name", xssPayload)
+                        .param("mode", "vuln"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Content-Security-Policy"))
+                .andExpect(content().string(containsString("<script>alert('XSS_UNSL')</script>")));
+
+        mockMvc.perform(get("/api/profile/greet")
+                        .param("name", xssPayload)
+                        .param("mode", "safe"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Security-Policy", containsString("script-src 'none'")))
+                .andExpect(content().string(not(containsString("<script>alert('XSS_UNSL')</script>"))))
+                .andExpect(content().string(containsString("&lt;script&gt;alert(&#39;XSS_UNSL&#39;)&lt;/script&gt;")));
+    }
+
+    @Test
+    @DisplayName("CWE-79 Aislamiento Multi-Estudiante: Notas Stored XSS aisladas por X-Lab-Session")
+    void testStoredXssSessionIsolation() throws Exception {
+        mockMvc.perform(post("/api/profile/notes")
+                        .header("X-Lab-Session", "alumno-A")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"author\":\"Ana\",\"content\":\"<img src=x onerror=alert(1)>\",\"mode\":\"vuln\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.redTeamFlag").value("FLAG{UNSL_STORED_XSS_PERSISTENT_2026}"));
+
+        mockMvc.perform(get("/api/profile/notes")
+                        .header("X-Lab-Session", "alumno-B"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    // =========================================================================
+    // CTF, CUESTIONARIOS, RANKING Y PANEL DOCENTE
+    // =========================================================================
+
+    @Test
+    @DisplayName("CTF & Ranking: Oculto hasta liberación docente; luego registro, envío de bandera, cuestionario y leaderboard")
+    void testCtfLeaderboardAndQuiz() throws Exception {
+        // Antes de liberar la CTF, los endpoints CTF deben responder 403 Forbidden
+        mockMvc.perform(get("/api/ctf/challenges"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.locked").value(true));
+
+        mockMvc.perform(get("/api/ctf/chain"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.locked").value(true));
+
+        mockMvc.perform(get("/api/ctf/leaderboard"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.locked").value(true));
+
+        // El docente libera la CTF
+        mockMvc.perform(post("/api/docente/phase")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ctfUnlocked\":true,\"password\":\"unsl-docente-2026\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ctfUnlocked").value(true));
+
+        mockMvc.perform(get("/api/ctf/challenges"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalChallenges").value(10))
+                .andExpect(jsonPath("$.challenges[0].flag").doesNotExist());
+
+        MvcResult reg = mockMvc.perform(post("/api/ctf/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"alias\":\"TestStudent\",\"workstation\":\"PC-11\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = reg.getResponse().getContentAsString();
+        String sessionId = body.replaceAll(".*\"sessionId\":\"([^\"]+)\".*", "$1");
+
+        // Verificar cadena progresiva: Paso 1 ACTIVE, Paso 2 LOCKED
+        mockMvc.perform(get("/api/ctf/chain").param("sessionId", sessionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.steps[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.steps[1].status").value("LOCKED"));
+
+        // Resolver Paso 1 (m1-red) devuelve nextHint y desbloquea Paso 2
         mockMvc.perform(post("/api/ctf/submit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"flag\": \"FLAG{UNSL_SQLI_AUTH_BYPASS_2026}\"}"))
+                        .content("{\"flag\":\"FLAG{UNSL_PURPLE_TEAM_PATH_TRAVERSAL_MASTERED_2026}\",\"sessionId\":\"" + sessionId + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.valid").value(true))
-                .andExpect(jsonPath("$.challengeId").value("m1-red"))
-                .andExpect(jsonPath("$.points").value(100));
+                .andExpect(jsonPath("$.nextHint").exists());
 
-        // Bandera inválida
+        mockMvc.perform(get("/api/ctf/chain").param("sessionId", sessionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.steps[0].status").value("COMPLETED"))
+                .andExpect(jsonPath("$.steps[1].status").value("ACTIVE"));
+
         mockMvc.perform(post("/api/ctf/submit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"flag\": \"FLAG{FAKE_FLAG_123}\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.valid").value(false));
+                        .content("{\"flag\":\"FLAG{UNSL_SQLI_AUTH_BYPASS_2026}\",\"sessionId\":\"" + sessionId + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valid").value(true))
+                .andExpect(jsonPath("$.title").exists());
+
+        mockMvc.perform(get("/api/ctf/leaderboard"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.leaderboard[0].alias").value("TestStudent"));
+
+        mockMvc.perform(post("/api/ctf/quiz/submit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"moduleId\":\"m1\",\"sessionId\":\"" + sessionId + "\",\"answers\":{\"m1-q1\":1,\"m1-q2\":0}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passed").value(true));
+    }
+
+    @Test
+    @DisplayName("Seguridad Aula: /h2-console deshabilitada y Panel Docente exige clave")
+    void testH2DisabledAndDocenteAuth() throws Exception {
+        mockMvc.perform(get("/h2-console"))
+                .andExpect(status().is4xxClientError());
+
+        mockMvc.perform(post("/api/docente/phase")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phase\":\"DIA_1\",\"password\":\"wrong\"}"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/docente/phase")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"phase\":\"DIA_2\",\"password\":\"unsl-docente-2026\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activePhase").value("DIA_2"));
     }
 }

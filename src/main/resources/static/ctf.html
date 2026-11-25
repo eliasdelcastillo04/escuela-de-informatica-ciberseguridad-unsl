@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OP_GUARANI // TERMINAL CTF ASCII - UNSL</title>
+  <style>
+    :root {
+      --crt-bg: #040705;
+      --crt-panel: #080f0a;
+      --crt-border: #1b4328;
+      --crt-green: #22c55e;
+      --crt-green-bright: #4ade80;
+      --crt-dim: #15803d;
+      --crt-amber: #f59e0b;
+      --crt-red: #f43f5e;
+      --crt-cyan: #38bdf8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--crt-bg);
+      color: var(--crt-green);
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #matrixBg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.16;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hacker-topbar {
+      background: #070d09;
+      border: 1px solid var(--crt-border);
+      border-bottom: 2px solid var(--crt-green);
+      padding: 7px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .glitch-title {
+      color: var(--crt-green-bright);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-shadow: 1px 0 rgba(244, 63, 94, 0.7), -1px 0 rgba(56, 189, 248, 0.7);
+    }
+
+    .ascii-btn:hover, .ascii-btn.active {
+      background: var(--crt-green);
+      color: #020403;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.55);
+    }
+
+    /* Efecto CRT Scanlines & Viñeta (inspirado en ascii-magic.com/ascii) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(34, 197, 94, 0.03) 0px,
+        rgba(34, 197, 94, 0.03) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 62%, rgba(0, 0, 0, 0.68) 100%);
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 20px 48px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .ascii-box {
+      background: var(--crt-panel);
+      border: 1px solid var(--crt-border);
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.06);
+    }
+
+    .ascii-header-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+    @media (max-width: 860px) { .ascii-header-grid { grid-template-columns: 1fr; } }
+
+    .ascii-canvas-wrap {
+      background: #020403;
+      border: 1px solid var(--crt-border);
+      padding: 8px 12px;
+      overflow: hidden;
+    }
+
+    #asciiRender {
+      margin: 0;
+      font-size: 10.5px;
+      line-height: 1.05;
+      color: var(--crt-green-bright);
+      text-shadow: 0 0 6px rgba(74, 222, 128, 0.35);
+      white-space: pre;
+      user-select: none;
+    }
+
+    .shader-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 11.5px;
+    }
+
+    .ascii-btn {
+      background: transparent;
+      color: var(--crt-green);
+      border: 1px solid var(--crt-green);
+      padding: 5px 11px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .ascii-btn:hover, .ascii-btn.active {
+      background: var(--crt-green);
+      color: #020403;
+    }
+    .ascii-btn-amber { border-color: var(--crt-amber); color: var(--crt-amber); }
+    .ascii-btn-amber:hover { background: var(--crt-amber); color: #020403; }
+    .ascii-btn-red { border-color: var(--crt-red); color: var(--crt-red); }
+    .ascii-btn-red:hover { background: var(--crt-red); color: #ffffff; }
+
+    .ascii-input {
+      width: 100%;
+      background: #020403;
+      border: 1px solid var(--crt-border);
+      color: var(--crt-green-bright);
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .ascii-input:focus { outline: none; border-color: var(--crt-green); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 920px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .step-item {
+      border: 1px solid var(--crt-border);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      background: #050b07;
+    }
+    .step-item.active { border-color: var(--crt-amber); background: rgba(245, 158, 11, 0.08); }
+    .step-item.completed { border-color: var(--crt-green); background: rgba(34, 197, 94, 0.08); }
+    .step-item.locked { opacity: 0.45; cursor: not-allowed; border-style: dashed; }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 11px;
+      border: 1px solid currentColor;
+      margin-right: 6px;
+    }
+
+    .terminal-out {
+      background: #020403;
+      border: 1px solid var(--crt-border);
+      padding: 10px 12px;
+      font-size: 12px;
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #a7f3d0;
+      margin-top: 10px;
+    }
+
+    .next-hint-banner {
+      border: 1px solid var(--crt-amber);
+      background: rgba(245, 158, 11, 0.1);
+      color: #fde68a;
+      padding: 12px 14px;
+      margin-top: 12px;
+    }
+
+    .ascii-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-top: 10px;
+    }
+    .ascii-table th, .ascii-table td {
+      border: 1px solid var(--crt-border);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .ascii-table th { background: rgba(34, 197, 94, 0.1); color: var(--crt-green-bright); }
+
+    .podium-ascii {
+      white-space: pre;
+      font-size: 12px;
+      line-height: 1.25;
+      color: var(--crt-amber);
+      overflow-x: auto;
+      margin: 8px 0;
+    }
+
+    a { color: var(--crt-cyan); }
+  </style>
+</head>
+<body>
+  <canvas id="matrixBg"></canvas>
+  <div class="container">
+
+    <!-- BARRA DE CONSOLA HACKER -->
+    <div class="hacker-topbar">
+      <div>
+        <span style="color:var(--crt-red);">●</span>
+        <span style="color:var(--crt-amber);">●</span>
+        <span style="color:var(--crt-green);">●</span>
+        <span style="margin-left:8px;" class="glitch-title">root@fsociety:~/op-guarani-ctf#</span>
+        <span style="color:#86efac;"> ./engage --target g3.unsl.edu.ar</span>
+      </div>
+      <div style="color:var(--crt-cyan); font-size:11.5px;">
+        [PROXY: LOCAL_LAB] · [C2: ONLINE] · [CLEARANCE: PURPLE_TEAM]
+      </div>
+    </div>
+
+    <!-- CABECERA ASCII MAGIC -->
+    <div class="ascii-box">
+      <div class="ascii-header-grid">
+        <div class="ascii-canvas-wrap">
+          <canvas id="srcCanvas" width="74" height="18" style="display:none;"></canvas>
+          <pre id="asciiRender"></pre>
+          <div class="shader-bar">
+            <span style="color:#86efac;">SHADER:</span>
+            <button type="button" class="ascii-btn active" id="sh-ascii" onclick="setShader('ascii')">[ ASCII ]</button>
+            <button type="button" class="ascii-btn" id="sh-blocks" onclick="setShader('blocks')">[ BLOQUES ]</button>
+            <button type="button" class="ascii-btn" id="sh-binary" onclick="setShader('binary')">[ MATRIX ]</button>
+            <span style="color:#86efac; margin-left:6px;">ESCENA:</span>
+            <button type="button" class="ascii-btn active" id="sc-donut" onclick="setScene('donut')">[ DONUT 3D ]</button>
+            <button type="button" class="ascii-btn" id="sc-radar" onclick="setScene('radar')">[ RADAR ]</button>
+            <button type="button" class="ascii-btn" id="sc-wave" onclick="setScene('wave')">[ ONDAS ]</button>
+            <span style="margin-left:auto; color:var(--crt-amber);" id="participantStatus">PARTICIPANTE: cargando...</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; min-width:230px;">
+          <div style="border:1px solid var(--crt-border); padding:8px 10px;">
+            <div>╔══ ESTADO DE MISIÓN ══╗</div>
+            <div id="progressBarAscii" style="color:var(--crt-amber); margin:4px 0;">[░░░░░░░░░░░░] 0/6</div>
+            <div id="scoreAscii">SCORE: 0 PTS</div>
+            <div id="asciiSpinner" style="font-size:11.5px; color:#86efac; margin-top:4px;">⠋ ENLACE ACTIVO</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="/" class="ascii-btn" style="text-decoration:none;">[ ← VOLVER AL SIU ]</a>
+            <button type="button" class="ascii-btn ascii-btn-amber" onclick="toggleFullscreen()">[ PROYECTOR ]</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANTALLA DE BLOQUEO SI DOCENTE AÚN NO LIBERÓ LA CTF -->
+    <div id="ctfLockedScreen" class="ascii-box" style="display:none; text-align:center; padding:36px 20px;">
+<pre style="color:var(--crt-red); display:inline-block; text-align:left; font-size:12px;">
+╔══════════════════════════════════════════════════════════════╗
+║  [!] ACCESO DENEGADO // COMPETENCIA CTF NO LIBERADA         ║
+║                                                              ║
+║  El equipo docente aún no habilitó el Terminal CTF Día 3.    ║
+║  Esta pantalla verificará automáticamente cada 5 segundos... ║
+╚══════════════════════════════════════════════════════════════╝
+</pre>
+      <div style="margin-top:12px;">
+        <a href="/" class="ascii-btn">[ VOLVER A PRÁCTICAS DEL SIU GUARANÍ ]</a>
+      </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL CTF -->
+    <div id="ctfMainContent" style="display:none;">
+      <div class="main-grid">
+
+        <!-- COLUMNA IZQUIERDA: CADENA DE PASOS PROGRESIVOS -->
+        <div class="ascii-box">
+          <div style="font-weight:700; margin-bottom:10px; color:var(--crt-green-bright);">
+            ╔══ CADENA DE EXPLOTACIÓN (6 PASOS) ══╗
+          </div>
+          <div id="chainStepsList">Cargando cadena...</div>
+        </div>
+
+        <!-- COLUMNA DERECHA: PASO ACTIVO + MINI TERMINAL + VALIDADOR -->
+        <div>
+          <div class="ascii-box" id="activeStepPanel">
+            <div style="color:var(--crt-amber);">Cargando misión...</div>
+          </div>
+
+          <!-- VALIDADOR DE BANDERA -->
+          <div class="ascii-box">
+            <div style="font-weight:700; color:var(--crt-green-bright); margin-bottom:8px;">
+              ╔══ VALIDADOR DE BANDERAS (DESCIFRA EL SIGUIENTE PASO) ══╗
+            </div>
+            <form onsubmit="submitCtfFlag(event)" style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input id="ctfFlagInput" type="text" class="ascii-input" style="flex:1; min-width:220px;" placeholder="FLAG{...}">
+              <button type="submit" class="ascii-btn">[ SUBMIT FLAG ]</button>
+            </form>
+            <div id="ctfFlagResult" style="margin-top:10px;"></div>
+          </div>
+
+          <!-- LOG DE INTRUSIÓN EN VIVO -->
+          <div class="ascii-box">
+            <div style="font-weight:700; color:var(--crt-cyan); margin-bottom:6px;">
+              ╔══ INTRUSION_LOG // TELEMETRÍA EN VIVO ══╗
+            </div>
+            <div id="intrusionLog" class="terminal-out" style="max-height:130px; margin-top:0; color:#86efac;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RANKING EN TIEMPO REAL ASCII -->
+      <div class="ascii-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <strong style="color:var(--crt-amber);">╔══ PODIO &amp; RANKING EN VIVO (TOP 3 PREMIACIÓN) ══╗</strong>
+          <button type="button" class="ascii-btn" onclick="loadAsciiLeaderboard()">[ ↻ REFRESCAR ]</button>
+        </div>
+        <pre id="asciiPodium" class="podium-ascii"></pre>
+        <table class="ascii-table">
+          <thead>
+            <tr><th>POS</th><th>ALIAS</th><th>PUESTO</th><th>PASOS/RETOS</th><th>TIEMPO</th><th>PUNTAJE</th></tr>
+          </thead>
+          <tbody id="asciiLeaderboardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <pre id="asciiFireworksOverlay" style="display:none; position:fixed; inset:0; margin:0; padding:24px; background:rgba(2,4,3,0.72); color:#4ade80; font-size:13px; line-height:1.15; z-index:9997; pointer-events:none; text-align:center; overflow:hidden;"></pre>
+
+  <script>
+    // =========================================================================
+    // MOTOR ASCII MAGIC (DONUT 3D + RADAR + ONDAS + CONFETI + SPINNER + TYPEWRITER)
+    // =========================================================================
+    let currentShader = 'ascii';
+    let currentScene = 'donut';
+    let animTick = 0;
+    let donutA = 0, donutB = 0;
+    const brailleFrames = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+
+    function setShader(sh) {
+      currentShader = sh;
+      ['ascii', 'blocks', 'binary'].forEach(id => {
+        document.getElementById('sh-' + id).classList.toggle('active', id === sh);
+      });
+    }
+
+    function setScene(sc) {
+      currentScene = sc;
+      ['donut', 'radar', 'wave'].forEach(id => {
+        document.getElementById('sc-' + id).classList.toggle('active', id === sc);
+      });
+    }
+
+    function renderDonutAscii(ramp) {
+      const W = 74, H = 18;
+      const b = new Array(W * H).fill(' ');
+      const z = new Array(W * H).fill(0);
+      for (let j = 0; j < 6.28; j += 0.08) {
+        for (let i = 0; i < 6.28; i += 0.03) {
+          const c = Math.sin(i), d = Math.cos(j), e = Math.sin(donutA), f = Math.sin(j);
+          const g = Math.cos(donutA), h = d + 2, D = 1 / (c * h * e + f * g + 5);
+          const l = Math.cos(i), m = Math.cos(donutB), n = Math.sin(donutB);
+          const t = c * h * g - f * e;
+          const x = Math.floor(W / 2 + 26 * D * (l * h * m - t * n));
+          const y = Math.floor(H / 2 + 12 * D * (l * h * n + t * m));
+          const o = x + W * y;
+          const N = Math.floor(8 * ((f * e - c * d * g) * m - c * d * e - f * g - l * d * n));
+          if (y >= 0 && y < H && x >= 0 && x < W && D > z[o]) {
+            z[o] = D;
+            const lumIdx = Math.max(1, Math.min(ramp.length - 1, Math.floor((Math.max(0, N) / 11) * (ramp.length - 1))));
+            b[o] = currentShader === 'binary' ? (((x + y + animTick) % 2 === 0) ? '1' : '0') : ramp[lumIdx];
+          }
+        }
+      }
+      donutA += 0.05;
+      donutB += 0.03;
+      let out = '';
+      for (let k = 0; k < W * H; k++) {
+        out += (k % W === W - 1) ? '\n' : b[k];
+      }
+      return out;
+    }
+
+    function renderAsciiMagicFrame() {
+      const sp = document.getElementById('asciiSpinner');
+      if (sp) sp.textContent = `${brailleFrames[animTick % brailleFrames.length]} ENLACE ACTIVO // PORT:8080`;
+
+      const ramps = {
+        ascii: ' .:-=+*#%@',
+        blocks: ' ░▒▓█',
+        binary: ' 01'
+      };
+      const ramp = ramps[currentShader] || ramps.ascii;
+
+      if (currentScene === 'donut') {
+        document.getElementById('asciiRender').textContent = renderDonutAscii(ramp);
+        animTick++;
+        return;
+      }
+
+      const canvas = document.getElementById('srcCanvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const w = canvas.width, h = canvas.height;
+
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+
+      if (currentScene === 'radar') {
+        const cx = w / 2, cy = h / 2, r = 8;
+        ctx.strokeStyle = '#666';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+        const ang = animTick * 0.14;
+        ctx.strokeStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ang) * r * 1.8, cy + Math.sin(ang) * r);
+        ctx.stroke();
+        ctx.fillStyle = '#ddd';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('RADAR // UNSL', 4, 10);
+      } else {
+        for (let x = 0; x < w; x++) {
+          const y1 = Math.floor(h / 2 + Math.sin(x * 0.16 + animTick * 0.08) * 5.2);
+          const y2 = Math.floor(h / 2 + Math.cos(x * 0.11 - animTick * 0.06) * 4.5);
+          ctx.fillStyle = '#555';
+          ctx.fillRect(x, y1, 1, 2);
+          ctx.fillStyle = '#888';
+          ctx.fillRect(x, y2, 1, 1);
+        }
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText('UNSL // CTF_2026', 6, 12);
+      }
+
+      const data = ctx.getImageData(0, 0, w, h).data;
+      let out = '';
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          const lum = (data[i] + data[i + 1] + data[i + 2]) / 765;
+          if (currentShader === 'binary' && lum > 0.15) {
+            out += ((x + y + Math.floor(animTick / 4)) % 2 === 0) ? '1' : '0';
+          } else {
+            const idx = Math.min(ramp.length - 1, Math.floor(lum * ramp.length));
+            out += ramp[idx];
+          }
+        }
+        out += '\n';
+      }
+      document.getElementById('asciiRender').textContent = out;
+      animTick++;
+    }
+
+    function triggerAsciiFireworks(title) {
+      const overlay = document.getElementById('asciiFireworksOverlay');
+      overlay.style.display = 'block';
+      let ticks = 0;
+      const timer = setInterval(() => {
+        const particles = ['*', '+', '✦', '✧', '•', '░', '▒'];
+        let frame = `\n\n   ╔══════════════════════════════════════════════╗\n   ║   ★ FLAG CAPTURADA: ${title.slice(0, 22).padEnd(22)} ★   ║\n   ╚══════════════════════════════════════════════╝\n\n`;
+        for (let r = 0; r < 14; r++) {
+          let line = '';
+          for (let c = 0; c < 64; c++) {
+            line += Math.random() < 0.09 ? particles[Math.floor(Math.random() * particles.length)] : ' ';
+          }
+          frame += line + '\n';
+        }
+        overlay.textContent = frame;
+        ticks++;
+        if (ticks >= 14) {
+          clearInterval(timer);
+          overlay.style.display = 'none';
+        }
+      }, 120);
+    }
+
+    function typeWriterEffect(el, text) {
+      el.textContent = '';
+      let idx = 0;
+      const iv = setInterval(() => {
+        el.textContent += text.charAt(idx++);
+        if (idx >= text.length) clearInterval(iv);
+      }, 16);
+    }
+
+    // =========================================================================
+    // ESTADO Y CADENA DIDÁCTICA CTF
+    // =========================================================================
+    let sessionId = localStorage.getItem('unsl_session_id') || '';
+    let alias = localStorage.getItem('unsl_alias') || 'Anonimo';
+    let workstation = localStorage.getItem('unsl_pc') || 'Sala-UNSL';
+    let chainData = null;
+    let selectedStepOrder = null;
+    let hintRevealCount = 0;
+
+    async function ensureParticipantSession() {
+      if (!sessionId) {
+        const res = await fetch('/api/ctf/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alias, workstation })
+        });
+        const data = await res.json();
+        sessionId = data.sessionId;
+        alias = data.alias;
+        localStorage.setItem('unsl_session_id', sessionId);
+        localStorage.setItem('unsl_alias', alias);
+      }
+      document.getElementById('participantStatus').textContent = `OPERADOR: ${alias} (${workstation})`;
+    }
+
+    async function loadChain() {
+      try {
+        const res = await fetch(`/api/ctf/chain?sessionId=${encodeURIComponent(sessionId)}`);
+        if (res.status === 403) {
+          document.getElementById('ctfLockedScreen').style.display = 'block';
+          document.getElementById('ctfMainContent').style.display = 'none';
+          return;
+        }
+        document.getElementById('ctfLockedScreen').style.display = 'none';
+        document.getElementById('ctfMainContent').style.display = 'block';
+
+        chainData = await res.json();
+        renderProgressBar(chainData.completedSteps, chainData.totalSteps);
+        renderStepsList(chainData.steps);
+
+        if (selectedStepOrder === null) {
+          selectedStepOrder = chainData.activeStepOrder;
+        }
+        renderSelectedStep();
+      } catch (_) {}
+    }
+
+    function renderProgressBar(done, total) {
+      const width = 12;
+      const filled = Math.round((done / Math.max(1, total)) * width);
+      const bar = '█'.repeat(filled) + '░'.repeat(width - filled);
+      document.getElementById('progressBarAscii').textContent = `[${bar}] ${done}/${total} PASOS`;
+    }
+
+    function renderStepsList(steps) {
+      const container = document.getElementById('chainStepsList');
+      container.innerHTML = steps.map(s => {
+        const isSel = s.stepOrder === selectedStepOrder;
+        const icon = s.status === 'COMPLETED' ? '[✓]' : (s.status === 'ACTIVE' ? '[>]' : '[X]');
+        const cls = s.status.toLowerCase() + (isSel ? ' active' : '');
+        return `<div class="step-item ${cls}" onclick="selectStep(${s.stepOrder}, '${s.status}')">
+          <div><strong>${icon} ${escapeHtml(s.title)}</strong></div>
+          <div style="font-size:11.5px; color:#86efac; margin-top:3px;">
+            <span class="tag">${escapeHtml(s.cwe)}</span> ${s.points} PTS · ${s.status}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function selectStep(order, status) {
+      if (status === 'LOCKED') return;
+      selectedStepOrder = order;
+      hintRevealCount = 0;
+      renderStepsList(chainData.steps);
+      renderSelectedStep();
+    }
+
+    function renderSelectedStep() {
+      const panel = document.getElementById('activeStepPanel');
+      const step = (chainData?.steps || []).find(s => s.stepOrder === selectedStepOrder);
+      if (!step) return;
+
+      if (step.status === 'COMPLETED') {
+        panel.innerHTML = `
+          <div style="color:var(--crt-green-bright); font-weight:700;">✓ ${escapeHtml(step.title)} [RESUELTO · +${step.points} PTS]</div>
+          <p style="margin:10px 0;"><strong>Aprendizaje clave:</strong> ${escapeHtml(step.didacticNote || '')}</p>
+          <div class="next-hint-banner">
+            <strong>🔓 PISTA DESCIFRADA PARA EL SIGUIENTE PASO:</strong><br>
+            ${escapeHtml(step.nextHint || '')}
+          </div>`;
+        return;
+      }
+
+      const hints = step.conceptualHints || [];
+      panel.innerHTML = `
+        <div style="color:var(--crt-amber); font-weight:700;">&gt;_ ${escapeHtml(step.title)} (${step.points} PTS)</div>
+        <p style="margin:10px 0;">${escapeHtml(step.briefing)}</p>
+        <div style="border-left:2px solid var(--crt-cyan); padding-left:10px; color:#bae6fd; font-size:12.5px; margin-bottom:12px;">
+          <strong>Base didáctica:</strong> ${escapeHtml(step.didacticNote)}
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <button type="button" class="ascii-btn ascii-btn-amber" onclick="revealStepHint()">[ 💡 PEDIR PISTA (${Math.min(hintRevealCount + 1, hints.length)}/${hints.length}) ]</button>
+          <div id="stepHintsOut" style="margin-top:8px; color:#fde68a; font-size:12.5px;"></div>
+        </div>
+
+        <div style="border-top:1px solid var(--crt-border); padding-top:12px;">
+          <div style="font-size:12px; color:#86efac; margin-bottom:6px;">COMANDO CURL SUGERIDO (Terminal Linux):</div>
+          <div style="background:#020403; border:1px solid var(--crt-border); padding:8px; font-size:11.5px; overflow-x:auto;">${escapeHtml(step.suggestedCurl)}</div>
+
+          <div style="margin-top:12px;">
+            <div style="font-size:12px; color:#86efac; margin-bottom:6px;">MINI-TERMINAL DE PRUEBA RÁPIDA (${escapeHtml(step.endpointType)}):</div>
+            <form onsubmit="runMiniTerminal(event, '${step.endpointType}')" style="display:flex; gap:8px;">
+              <input id="miniTermInput" type="text" class="ascii-input" placeholder="Ingresa tu payload aquí...">
+              <button type="submit" class="ascii-btn">[ EJECUTAR ]</button>
+            </form>
+            <div id="miniTermOutput" class="terminal-out" style="display:none;"></div>
+          </div>
+        </div>`;
+    }
+
+    function revealStepHint() {
+      const step = (chainData?.steps || []).find(s => s.stepOrder === selectedStepOrder);
+      const hints = step?.conceptualHints || [];
+      if (hintRevealCount < hints.length) hintRevealCount++;
+      document.getElementById('stepHintsOut').innerHTML = hints.slice(0, hintRevealCount).map(h => `<div>• ${escapeHtml(h)}</div>`).join('');
+    }
+
+    async function runMiniTerminal(e, type) {
+      e.preventDefault();
+      const val = document.getElementById('miniTermInput').value.trim();
+      const out = document.getElementById('miniTermOutput');
+      out.style.display = 'block';
+      out.textContent = 'Ejecutando petición...';
+
+      let url = '';
+      if (type === 'file') url = `/api/files/download?filename=${encodeURIComponent(val)}&mode=vuln`;
+      else if (type === 'file-safe') url = `/api/files/download?filename=${encodeURIComponent(val)}&mode=safe`;
+      else if (type === 'sql') url = `/api/users/search?username=${encodeURIComponent(val)}&mode=vuln`;
+      else if (type === 'xss') url = `/api/profile/greet?name=${encodeURIComponent(val)}&mode=vuln`;
+
+      try {
+        logIntrusion('TX', `GET ${url}`);
+        const res = await fetch(url);
+        logIntrusion(res.ok ? 'RX' : 'WARN', `HTTP ${res.status} recibido desde ${type}`);
+        const headersTxt = Array.from(res.headers.entries())
+          .filter(([k]) => k.toLowerCase().startsWith('x-purpleteam'))
+          .map(([k, v]) => `${k}: ${v}`)
+          .join('\n');
+        const body = await res.text();
+        out.textContent = `HTTP ${res.status}\n${headersTxt ? headersTxt + '\n---\n' : ''}${body}`;
+      } catch (err) {
+        out.textContent = 'Error: ' + err.message;
+      }
+    }
+
+    async function submitCtfFlag(e) {
+      e.preventDefault();
+      const flag = document.getElementById('ctfFlagInput').value.trim();
+      const resBox = document.getElementById('ctfFlagResult');
+      if (!flag) return;
+
+      const res = await fetch('/api/ctf/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Lab-Session': sessionId },
+        body: JSON.stringify({ flag, sessionId })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        logIntrusion('PWN', `Flag aceptada: ${data.title} (+${data.points} pts)`);
+        document.getElementById('ctfFlagInput').value = '';
+        triggerAsciiFireworks(data.title || 'CTF');
+        resBox.innerHTML = `<div class="next-hint-banner">
+          <strong>[✓] ${escapeHtml(data.title)} (+${data.points} PTS)</strong>
+          ${data.nextHint ? `<div style="margin-top:6px;">🔓 <strong>SIGUIENTE PISTA:</strong> <span id="typedNextHint"></span></div>` : ''}
+        </div>`;
+        if (data.nextHint) {
+          typeWriterEffect(document.getElementById('typedNextHint'), data.nextHint);
+        }
+        selectedStepOrder = null;
+        await loadChain();
+        await loadAsciiLeaderboard();
+      } else {
+        resBox.innerHTML = `<div style="color:var(--crt-red);">[!] ${escapeHtml(data.message)}</div>`;
+      }
+    }
+
+    async function loadAsciiLeaderboard() {
+      try {
+        const res = await fetch('/api/ctf/leaderboard');
+        if (!res.ok) return;
+        const data = await res.json();
+        const rows = data.leaderboard || [];
+
+        const me = rows.find(r => r.sessionId === sessionId);
+        if (me) document.getElementById('scoreAscii').textContent = `SCORE: ${me.points} PTS (POS #${me.rank})`;
+
+        const p1 = rows[0] ? `${rows[0].alias} (${rows[0].points}p · ${rows[0].elapsedFormatted || '--:--'})` : '---';
+        const p2 = rows[1] ? `${rows[1].alias} (${rows[1].points}p · ${rows[1].elapsedFormatted || '--:--'})` : '---';
+        const p3 = rows[2] ? `${rows[2].alias} (${rows[2].points}p · ${rows[2].elapsedFormatted || '--:--'})` : '---';
+
+        document.getElementById('asciiPodium').textContent =
+`                [1°] ${p1}
+             ╔═══════════════╗
+  [2°] ${p2.padEnd(18).slice(0,18)} ║      🥇       ║  [3°] ${p3}
+╔══════════════╣               ╠══════════════╗
+║      🥈      ║               ║      🥉      ║`;
+
+        document.getElementById('asciiLeaderboardBody').innerHTML = rows.map(r => `
+          <tr>
+            <td>#${r.rank}</td>
+            <td><strong>${escapeHtml(r.alias)}</strong></td>
+            <td>${escapeHtml(r.workstation)}</td>
+            <td>${r.solvedCount}</td>
+            <td>${escapeHtml(r.elapsedFormatted || '--:--')} <small style="color:#86efac;">(${escapeHtml(r.lastSolveTime || '')})</small></td>
+            <td><strong>${r.points} PTS</strong></td>
+          </tr>`).join('') || '<tr><td colspan="6">Sin participantes aún.</td></tr>';
+      } catch (_) {}
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+      else document.exitFullscreen().catch(() => {});
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function logIntrusion(level, msg) {
+      const box = document.getElementById('intrusionLog');
+      if (!box) return;
+      const ts = new Date().toLocaleTimeString();
+      const line = document.createElement('div');
+      line.textContent = `[${ts}] [${level}] ${msg}`;
+      box.prepend(line);
+      while (box.children.length > 25) box.removeChild(box.lastChild);
+    }
+
+    // Lluvia Matrix sutil de fondo
+    function initMatrixRain() {
+      const c = document.getElementById('matrixBg');
+      const ctx = c.getContext('2d');
+      const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const chars = '01ABCDEF#$%@*<>/{}[]';
+      const fontSize = 14;
+      let drops = Array(Math.ceil(window.innerWidth / fontSize)).fill(1);
+
+      setInterval(() => {
+        ctx.fillStyle = 'rgba(4, 7, 5, 0.08)';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.fillStyle = '#22c55e';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < drops.length; i++) {
+          const ch = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > c.height && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+      }, 65);
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initMatrixRain();
+      setInterval(renderAsciiMagicFrame, 90);
+      logIntrusion('SYS', 'Terminal OP_GUARANI inicializada. Conectando al objetivo...');
+      await ensureParticipantSession();
+      await loadChain();
+      await loadAsciiLeaderboard();
+      setInterval(() => { loadChain(); loadAsciiLeaderboard(); }, 5000);
+    });
+  </script>
+</body>
+</html>

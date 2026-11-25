@@ -1,92 +1,50 @@
-# Laboratorio de Seguridad en Aplicaciones Web - UNSL
+# Laboratorio de Seguridad en Aplicaciones Web - UNSL (Purple Team)
 
-Proyecto práctico de ciberseguridad con enfoque **Purple Team** (Detección, Telemetría y Remediación) desarrollado para la **Universidad Nacional de San Luis (UNSL)**.
-
-Construido sobre **Java 17 / Spring Boot 3.3.x**, este entorno simula vulnerabilidades comunes del Top 10 de OWASP para analizar sus vectores de explotación y aplicar técnicas defensivas de sanitización, consultas parametrizadas, control de rutas y telemetría de seguridad.
+Plataforma práctica de ciberseguridad web orientada al **Taller de Seguridad Web (3 Jornadas · 9 horas)** de la **Universidad Nacional de San Luis (UNSL)**. Diseñada para operar **100% offline** en el servidor local de la Sala de Máquinas Linux con múltiples estudiantes concurrentes.
 
 ---
 
-## 🚀 Inicio Rápido con Docker
+## Arquitectura Didáctica y Multi-Estudiante
 
-La forma recomendada de inicializar el laboratorio es utilizando **Docker Compose**:
-
-```bash
-docker compose up --build -d
-```
-
-Una vez levantado el contenedor:
-- Accede a la interfaz web interactiva en: [http://localhost:8080](http://localhost:8080)
-- Monitorea logs y telemetría de seguridad en tiempo real con:
-  ```bash
-  docker compose logs -f ciberlab-app
-  ```
-
-Para detener el entorno:
-```bash
-docker compose down
-```
+- **Aislamiento en Aula Compartida**:
+  - Consultas SQL vulnerables ejecutadas con usuario H2 **Read-Only** (`CIBERLAB_RO`) y `queryTimeout` de 2s, impidiendo `DROP`/`DELETE`/`SHUTDOWN`.
+  - Consola `/h2-console` deshabilitada por defecto.
+  - Path Traversal (`CWE-22`) confinado al directorio `storage/` (≤ 64 KB) en modo vulnerable.
+  - **XSS Almacenado** persistente en H2 pero **aislado por sesión** (`X-Lab-Session`) para evitar contaminación entre estudiantes.
+  - **Rate Limiting** por IP (`RateLimitFilter`) para evitar saturación por scripts o bucles en aula.
+- **Cobertura del Cronograma (3 Jornadas)**:
+  - **Día 1**: Path Traversal (`CWE-22`) + Cuestionario práctico + SQL Injection Parte 1 (Auth Bypass `CWE-89`).
+  - **Día 2**: SQL Injection Parte 2 (`UNION SELECT` sobre `audit_secrets` + Blind SQLi `/api/users/check`), XSS Reflejado (impacto en sesión) + XSS Almacenado + Cuestionario y CSP (`CWE-79`).
+  - **Día 3**: Competencia CTF con **Ranking en tiempo real** (Top 3 para premiación) y retos encadenados.
+- **Panel Docente**: Control de jornada activa (`DIA_1`, `DIA_2`, `DIA_3_CTF`, `LIBRE`), Modo Demo en vivo, reinicio de Ranking y exportación CSV.
 
 ---
 
-## 💻 Ejecución Nativa en Ubuntu / Linux (Sin Docker)
+## Despliegue en Sala de Máquinas (Linux)
 
-Si prefieres ejecutar el proyecto directamente en tu sistema Ubuntu con **Java 17+**:
-
-### 1. Prerrequisitos en Ubuntu
+### Opción 1: Ejecución directa con Java 17 / Maven (Recomendada en Sala)
 ```bash
-sudo apt update
-sudo apt install -y openjdk-17-jdk
-```
+# Definir clave docente antes de iniciar (opcional, por defecto: unsl-docente-2026)
+export DOCENTE_PASSWORD="tu_clave_segura_docente"
 
-### 2. Ejecutar la Aplicación Web con `java -jar`
-Empaqueta el ejecutable y levanta la aplicación:
-```bash
-# Compilar y empaquetar el JAR
-./mvnw clean package -DskipTests
+# Compilar y empaquetar
+./mvnw clean package
 
-# Iniciar la aplicación con el comando java
+# Iniciar servidor en puerto 8080
 java -jar target/laboratorio-seguridad-web-1.0.0-SNAPSHOT.jar
 ```
-La aplicación estará disponible en [http://localhost:8080](http://localhost:8080).
 
-### 3. Ejecutar las Pruebas de Seguridad Automatizadas
+### Opción 2: Docker Compose
 ```bash
-# Ejecutar todas las pruebas de seguridad con Maven Wrapper
-./mvnw test
-
-# O ejecutar únicamente la clase de test de seguridad
-./mvnw test -Dtest=CiberlabSecurityTests
+DOCENTE_PASSWORD="tu_clave_segura_docente" docker compose up --build -d
 ```
 
----
-
-## ✨ Características Principales del Laboratorio
-
-- **Intranet Retro Universitaria (Edición 2003)** dentro de un escritorio **Windows XP Luna**: Se abre automáticamente en Internet Explorer 6.0 con banners ASCII, diagramas Unicode y tipografía de alto contraste (`#0d1117` con texto verde fósforo y ámbar).
-- **Progresión Incremental por Fases y Módulos**:
-  - Desbloqueo secuencial: **Módulo 1 (CWE-89 SQLi)** ➔ **Módulo 2 (CWE-79 XSS)** ➔ **Módulo 3 (CWE-22 Path Traversal)** (con opción de **Modo Docente** para desbloqueo libre).
-  - 4 Fases guiadas por módulo: `1. Teoría & AST/DOM` ➔ `2. Ataque Red Team` ➔ `3. Telemetría de Servidor` ➔ `4. Remediación Blue Team`.
-- **Sistema CTF Integrado (`/api/ctf`)**: 6 retos oficiales (3 Red Team + 3 Blue Team), validador de banderas `FLAG{...}` desde la UI o desde la terminal MS-DOS (`submit <flag>`), y persistencia automática en el navegador.
-- **Terminal MS-DOS Interactiva**: Soporta comandos reales como `ctf`, `submit <FLAG>`, `cat <archivo>`, `curl <endpoint>`, `unlock`, `help`, `cls`.
+Accede desde cualquier puesto de la red interna a `http://<IP-DEL-SERVIDOR>:8080`.
 
 ---
 
-## 🛠️ Estructura del Repositorio
-
-- `.github/workflows/ci.yml`: Workflow de GitHub Actions para compilación y pruebas automatizadas de seguridad.
-- `Dockerfile`: Configuración multi-stage sin privilegios (usuario `ciberlab`).
-- `docker-compose.yml`: Despliegue con límites de recursos (CPU y RAM).
-- `pom.xml`: Configuración Maven, Spring Boot 3.3.5 y dependencias de seguridad (`org.owasp.encoder`).
-- `storage/`: Directorio de archivos simulados para pruebas de Path Traversal (`public/` y `confidential/`).
-- `src/main/java/edu/unsl/ciberlab/controller/`: Controladores de los 3 módulos (`UserController`, `ProfileController`, `FileController`) y motor CTF (`CtfController`).
-- `src/main/resources/static/index.html`: Escritorio Windows XP + Intranet Retro UNSL 2000s + Terminal MS-DOS + CTF Tracker.
-- `src/test/`: Suite de 8 pruebas unitarias y de integración de seguridad (`CiberlabSecurityTests`).
-- [LAB_MANUAL.md](LAB_MANUAL.md): **Manual completo de laboratorio** con guía paso a paso de explotación, telemetría y remediación.
-
----
-
-## 📖 Manual de Ejercicios
-
-Consulta la guía completa de actividades y dinámica CTF en:
-👉 **[LAB_MANUAL.md](LAB_MANUAL.md)**
-
+## Pruebas Automatizadas
+```bash
+./mvnw test
+```
+Incluye pruebas Red Team, Blue Team, aislamiento multi-estudiante (SQLi Read-Only, Sandbox `storage/`, aislamiento de sesiones XSS, `/h2-console` deshabilitada, Rate Limiting), cuestionarios y Ranking CTF.

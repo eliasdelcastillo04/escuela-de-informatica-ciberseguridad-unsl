@@ -1,0 +1,4 @@
+[RESPALDO INTERNO - DÍA 3 CTF]
+Nodo: sala8-pc11.unsl.edu.ar
+Evidencia de auditoría: FLAG{UNSL_CTF_DAY3_HIDDEN_BACKUP_2026}
+Nota: Verificar que Path.normalize() + startsWith() bloquee este acceso.

@@ -1,4 +1,43 @@
 FLAG{UNSL_PURPLE_TEAM_PATH_TRAVERSAL_MASTERED_2026}
-[CONFIDENCIAL] Acceso no autorizado a registros sensibles de la Universidad Nacional de San Luis.
-Si estás leyendo este archivo a través del endpoint web, has explotado exitosamente CWE-22 (Path Traversal).
-Proceder a la remediación inmediata en FileController.java aplicando java.nio.file.Path y startsWith().
+================================================================================
+UNIVERSIDAD NACIONAL DE SAN LUIS - RECTORADO & SECRETARÍA GENERAL
+SISTEMA DE GESTIÓN ACADÉMICA (SIU GUARANÍ v3.20.1) - ARCHIVO INTERNO CONFIDENCIAL
+================================================================================
+
+[METADATOS DEL SERVIDOR Y BASE DE DATOS]
+• Motor de Base de Datos: H2 In-Memory Database Engine v2.2.224 (Compilado con compatibilidad ANSI SQL / PostgreSQL)
+• String de Conexión: jdbc:h2:mem:ciberlab_db;DB_CLOSE_DELAY=-1
+• Esquema de Tabla Principal:
+  TABLE users (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(50) NOT NULL UNIQUE,
+      password VARCHAR(100) NOT NULL, -- ALERTA: Almacenado en texto plano provisional
+      email VARCHAR(100),
+      role VARCHAR(20),               -- Roles: 'ADMIN', 'PROFESSOR', 'STUDENT'
+      ssn VARCHAR(20),                -- DNI / Documento de Identidad del alumno
+      active BOOLEAN DEFAULT TRUE
+  );
+
+[LOG DE MANTENIMIENTO TÉCNICO]
+• Fecha de Última Modificación: 2026-03-12 14:32:00 UTC
+• Administrador a Cargo: Sysadmin DGTI - UNSL (lic.sistemas@unsl.edu.ar)
+• Observación de Auditoría: "Pendiente migración a PostgreSQL 16 y cifrado bcrypt de passwords".
+
+[ALERTAS DE VULNERABILIDADES INTERNAS PENDIENTES DE PARCHEO]
+1. Indicio Vector SQLi (Buscador del Directorio Académico):
+   - El endpoint '/api/users/search?username=' sigue utilizando Statement.executeQuery() 
+     concatenando directamente la entrada del alumno sin PreparedStatement:
+     "SELECT * FROM users WHERE username = '" + username + "'"
+   - Un operador booleano simple (' OR '1'='1) provocaría el volcado total de los alumnos y docentes.
+
+2. Indicio Vector XSS (Módulo de Perfil del Alumno):
+   - El endpoint '/api/profile/greet?name=' devuelve una plantilla HTML cruda concatenando el parámetro 'name'.
+   - El equipo de desarrollo no implementó Encode.forHtml() de OWASP Encoder y la respuesta
+     carece de cabecera Content-Security-Policy (CSP).
+   - Cualquier tag HTML inyectado como <img src=x onerror=...> o <script> se ejecutará 
+     automáticamente en el navegador de la víctima al cargar su perfil en el SIU Guaraní.
+
+================================================================================
+ADVERTENCIA: Si estás leyendo este archivo a través del validador de descargas web,
+has explotado exitosamente CWE-22 (Path Traversal). Aplica remediación en FileController.java.
+================================================================================

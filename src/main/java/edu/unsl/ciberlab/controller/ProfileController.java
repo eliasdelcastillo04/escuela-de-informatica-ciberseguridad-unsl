@@ -6,32 +6,34 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
- * MÓDULO 2: CWE-79 (Improper Neutralization of Input During Web Page Generation - 'Cross-Site Scripting')
- *
- * Enfoque Purple Team:
- * - Red Team: Inyección de payload script/HTML malicioso que se refleja en la respuesta y se ejecuta en el navegador.
- * - Blue Team: Sanitización contextual con OWASP Java Encoder (Encode.forHtml) y política de defensa en profundidad
- *   mediante cabeceras HTTP Content-Security-Policy (CSP).
+ * MÓDULO 3 (DÍA 2): CWE-79 (Cross-Site Scripting - Reflected & Stored)
+ * - XSS Reflejado (/api/profile/greet): Demuestra ejecución en el DOM y exposición de sesión simulada.
+ * - XSS Almacenado (/api/profile/notes): Persiste en H2 aislado por sesión de estudiante (X-Lab-Session)
+ *   para evitar contaminación cruzada entre compañeros en la Sala de Máquinas.
+ * - Blue Team: OWASP Java Encoder (Encode.forHtml) + cabeceras Content-Security-Policy (CSP).
  */
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
 
     private static final Logger log = LoggerFactory.getLogger(ProfileController.class);
+    private static final int MAX_NOTES_PER_SESSION = 20;
+    private static final int MAX_NOTE_LENGTH = 500;
 
-    /**
-     * Endpoint de bienvenida de perfil de usuario.
-     * Devuelve HTML directamente al navegador.
-     *
-     * @param name Nombre ingresado por el usuario.
-     * @param mode Modo de ejecución ("vuln" por defecto, o "safe" para demostración docente).
-     */
+    private final JdbcTemplate jdbcTemplate;
+
+    public ProfileController(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @GetMapping(value = "/greet", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> greetUser(
             @RequestParam(name = "name", defaultValue = "Invitado") String name,
@@ -40,16 +42,6 @@ public class ProfileController {
         if ("safe".equalsIgnoreCase(mode)) {
             return greetUserRemediated(name);
         }
-
-        // =========================================================================
-        // [VULNERABLE DIDÁCTICO] CWE-79: Reflejo directo de entrada en contexto HTML
-        // =========================================================================
-        // CAUSA RAÍZ: La variable 'name' se concatena en el cuerpo HTML sin codificación contextual.
-        // Si el usuario envía: <script>alert('XSS')</script> o <img src=x onerror=alert(1)>
-        // El navegador del usuario final parsea la cadena como etiquetas ejecutables en el DOM.
-        // Adicionalmente, NO se define cabecera Content-Security-Policy (CSP), permitiendo
-        // la ejecución indiscriminada de scripts inline.
-        // =========================================================================
 
         log.warn("[Purple Team - ALERTA CWE-79] Reflejando entrada cruda sin sanitizar: {}", name);
 
@@ -60,17 +52,25 @@ public class ProfileController {
                 <meta charset="UTF-8">
                 <title>Portal Universitario - Saludo de Perfil</title>
                 <style>
-                    body { font-family: system-ui, sans-serif; padding: 1.5rem; background: #fff; color: #111; }
-                    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.25rem; max-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                    .badge-vuln { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-                    .telemetry { margin-top: 1rem; font-family: monospace; font-size: 0.85rem; background: #f3f4f6; padding: 0.75rem; border-radius: 4px; }
+                    body { font-family: system-ui, sans-serif; padding: 1.25rem; background: #fff; color: #111; margin: 0; }
+                    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.15rem; max-width: 620px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+                    .badge-vuln { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; }
+                    .telemetry { margin-top: 0.85rem; font-family: monospace; font-size: 0.8rem; background: #f3f4f6; padding: 0.7rem; border-radius: 4px; }
+                    .session-box { margin-top: 0.75rem; font-family: monospace; font-size: 0.78rem; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 0.55rem 0.7rem; border-radius: 4px; }
                 </style>
+                <script>
+                    // Sesión simulada accesible al DOM (sin HttpOnly) para demostrar impacto de XSS
+                    window.__SIU_DEMO_SESSION__ = "SIU_SID=UNSL-2026-DEMO-TOKEN";
+                </script>
             </head>
             <body>
                 <div class="card">
                     <span class="badge-vuln">ESTADO: MODO VULNERABLE (CWE-79)</span>
-                    <h2>¡Bienvenido/a a la plataforma, %s!</h2>
-                    <p>Tu sesión de entrenamiento Purple Team está actualmente activa.</p>
+                    <h2 style="margin: 10px 0 6px;">¡Bienvenido/a a la plataforma, %s!</h2>
+                    <p style="margin: 0;">Tu sesión de entrenamiento Purple Team está actualmente activa.</p>
+                    <div class="session-box">
+                        Token de sesión activo en contexto JS (sin HttpOnly): <strong>SIU_SID=UNSL-2026-DEMO-TOKEN</strong>
+                    </div>
                     <div class="telemetry">
                         <strong>Telemetría HTTP Servidor:</strong><br>
                         Entrada recibida: %s<br>
@@ -86,41 +86,18 @@ public class ProfileController {
         headers.set("X-PurpleTeam-Mode", "VULNERABLE (CWE-79)");
         headers.set("X-PurpleTeam-Sanitization", "NONE");
         headers.set("X-PurpleTeam-CSP", "ABSENT");
-        String lowerName = name.toLowerCase();
-        if (lowerName.contains("<script") || lowerName.contains("onerror") || lowerName.contains("onload") || lowerName.contains("<svg") || lowerName.contains("<img")) {
+        if (containsXssPayload(name)) {
             headers.set("X-PurpleTeam-Red-Flag", "FLAG{UNSL_XSS_DOM_INJECTION_ALERT_2026}");
         }
 
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(htmlVulnerable);
-
-        /*
-         * =========================================================================
-         * [GUÍA DE REMEDIACIÓN PARA EL ESTUDIANTE]
-         * =========================================================================
-         * Para corregir esta vulnerabilidad:
-         * 1. Codifica la variable antes de inyectarla usando OWASP Encoder:
-         *    String safeName = Encode.forHtml(name);
-         *
-         * 2. Configura cabeceras defensivas estrictas (Content-Security-Policy):
-         *    HttpHeaders safeHeaders = new HttpHeaders();
-         *    safeHeaders.set("Content-Security-Policy", "default-src 'self'; script-src 'none'; object-src 'none';");
-         *    safeHeaders.set("X-Content-Type-Options", "nosniff");
-         *
-         * 3. Retorna la respuesta con el safeName y las safeHeaders.
-         * =========================================================================
-         */
     }
 
-    /**
-     * Versión remediada: Aplica Encode.forHtml() de OWASP Java Encoder
-     * y restringe la política de ejecución del navegador mediante Content-Security-Policy.
-     */
     public ResponseEntity<String> greetUserRemediated(String name) {
         log.info("[Purple Team - REMEDIADO] Aplicando sanitización contextual Encode.forHtml() y cabeceras CSP");
 
-        // 1. Sanitización contextual con OWASP Encoder: convierte <, >, ", ', & a sus entidades HTML seguras
         String safeName = Encode.forHtml(name);
 
         String htmlRemediated = """
@@ -130,17 +107,17 @@ public class ProfileController {
                 <meta charset="UTF-8">
                 <title>Portal Universitario - Saludo de Perfil (Seguro)</title>
                 <style>
-                    body { font-family: system-ui, sans-serif; padding: 1.5rem; background: #fff; color: #111; }
-                    .card { border: 1px solid #bbf7d0; border-radius: 8px; padding: 1.25rem; max-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                    .badge-safe { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-                    .telemetry { margin-top: 1rem; font-family: monospace; font-size: 0.85rem; background: #f0fdf4; padding: 0.75rem; border-radius: 4px; border: 1px solid #bbf7d0; }
+                    body { font-family: system-ui, sans-serif; padding: 1.25rem; background: #fff; color: #111; margin: 0; }
+                    .card { border: 1px solid #bbf7d0; border-radius: 8px; padding: 1.15rem; max-width: 620px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+                    .badge-safe { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.78rem; }
+                    .telemetry { margin-top: 0.85rem; font-family: monospace; font-size: 0.8rem; background: #f0fdf4; padding: 0.7rem; border-radius: 4px; border: 1px solid #bbf7d0; }
                 </style>
             </head>
             <body>
                 <div class="card">
                     <span class="badge-safe">ESTADO: REMEDIADO (Encode.forHtml + CSP)</span>
-                    <h2>¡Bienvenido/a a la plataforma, %s!</h2>
-                    <p>Tu saludo ha sido sanitizado contextualmente contra inyecciones XSS.</p>
+                    <h2 style="margin: 10px 0 6px;">¡Bienvenido/a a la plataforma, %s!</h2>
+                    <p style="margin: 0;">Tu saludo ha sido sanitizado contextualmente contra inyecciones XSS.</p>
                     <div class="telemetry">
                         <strong>Telemetría Defensiva Aplicada:</strong><br>
                         Entrada original: %s<br>
@@ -153,7 +130,6 @@ public class ProfileController {
             </html>
             """.formatted(safeName, Encode.forHtmlContent(name), safeName);
 
-        // 2. Cabeceras HTTP defensivas
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Security-Policy", "default-src 'self'; script-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'");
         headers.set("X-Content-Type-Options", "nosniff");
@@ -165,5 +141,107 @@ public class ProfileController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(htmlRemediated);
+    }
+
+    /**
+     * Lista las notas almacenadas en servidor para la sesión actual del estudiante.
+     */
+    @GetMapping("/notes")
+    public ResponseEntity<Map<String, Object>> listNotes(
+            @RequestHeader(value = "X-Lab-Session", required = false, defaultValue = "default") String sessionId) {
+
+        String cleanSession = normalizeSessionId(sessionId);
+        List<Map<String, Object>> notes = jdbcTemplate.queryForList(
+                "SELECT id, author, content, created_at FROM profile_notes WHERE session_id = ? ORDER BY id ASC",
+                cleanSession
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "sessionId", cleanSession,
+                "notes", notes,
+                "total", notes.size()
+        ));
+    }
+
+    /**
+     * Guarda una observación en la base de datos H2 (XSS Almacenado aislado por sesión).
+     */
+    @PostMapping("/notes")
+    public ResponseEntity<Map<String, Object>> createNote(
+            @RequestHeader(value = "X-Lab-Session", required = false, defaultValue = "default") String sessionId,
+            @RequestBody Map<String, String> payload) {
+
+        String cleanSession = normalizeSessionId(sessionId);
+        String rawContent = payload.getOrDefault("content", "").trim();
+        String author = payload.getOrDefault("author", "Alumno UNSL").trim();
+        String mode = payload.getOrDefault("mode", "vuln").trim();
+
+        if (rawContent.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El contenido de la observación no puede estar vacío."));
+        }
+        if (rawContent.length() > MAX_NOTE_LENGTH) {
+            rawContent = rawContent.substring(0, MAX_NOTE_LENGTH);
+        }
+        String cleanAuthor = Encode.forHtml(author.length() > 50 ? author.substring(0, 50) : author);
+
+        Integer currentCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM profile_notes WHERE session_id = ?",
+                Integer.class,
+                cleanSession
+        );
+        if (currentCount != null && currentCount >= MAX_NOTES_PER_SESSION) {
+            jdbcTemplate.update(
+                    "DELETE FROM profile_notes WHERE id = (SELECT MIN(id) FROM profile_notes WHERE session_id = ?)",
+                    cleanSession
+            );
+        }
+
+        boolean safeMode = "safe".equalsIgnoreCase(mode);
+        String storedContent = safeMode ? Encode.forHtml(rawContent) : rawContent;
+        String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+        jdbcTemplate.update(
+                "INSERT INTO profile_notes (session_id, author, content, created_at) VALUES (?, ?, ?, ?)",
+                cleanSession, cleanAuthor, storedContent, nowTime
+        );
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("saved", true);
+        response.put("mode", safeMode ? "REMEDIATED (OWASP Encode.forHtml)" : "VULNERABLE (Raw Stored)");
+        response.put("storedContent", storedContent);
+
+        if (!safeMode && containsXssPayload(rawContent)) {
+            response.put("redTeamFlag", "FLAG{UNSL_STORED_XSS_PERSISTENT_2026}");
+        } else if (safeMode) {
+            response.put("blueTeamFlag", "FLAG{UNSL_CSP_CONTEXTUAL_ENCODING_2026}");
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/notes")
+    public ResponseEntity<Map<String, Object>> clearNotes(
+            @RequestHeader(value = "X-Lab-Session", required = false, defaultValue = "default") String sessionId) {
+
+        String cleanSession = normalizeSessionId(sessionId);
+        int deleted = jdbcTemplate.update("DELETE FROM profile_notes WHERE session_id = ?", cleanSession);
+        return ResponseEntity.ok(Map.of("cleared", true, "deletedCount", deleted));
+    }
+
+    private boolean containsXssPayload(String input) {
+        if (input == null) return false;
+        String lower = input.toLowerCase();
+        return lower.contains("<script")
+                || lower.contains("onerror")
+                || lower.contains("onload")
+                || lower.contains("<svg")
+                || lower.contains("<img");
+    }
+
+    private String normalizeSessionId(String raw) {
+        if (raw == null || raw.isBlank()) return "default";
+        String clean = raw.trim().replaceAll("[^a-zA-Z0-9_-]", "");
+        if (clean.isEmpty()) return "default";
+        return clean.length() > 64 ? clean.substring(0, 64) : clean;
     }
 }

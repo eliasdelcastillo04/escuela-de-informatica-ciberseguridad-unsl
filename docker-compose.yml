@@ -9,15 +9,17 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - APP_STORAGE_BASE_DIR=/app/storage
-    # Límites de recursos pensados para estaciones de trabajo universitarias
+      - DOCENTE_PASSWORD=${DOCENTE_PASSWORD:-unsl-docente-2026}
+      - HELP_PASSWORD=${HELP_PASSWORD:-socosoco}
+    # Límites de recursos pensados para aula simultánea (25-60 estudiantes)
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '2.0'
+          memory: 1024M
         reservations:
-          memory: 256M
-    mem_limit: 512m
+          memory: 512M
+    mem_limit: 1024m
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/api/files/list || exit 1"]

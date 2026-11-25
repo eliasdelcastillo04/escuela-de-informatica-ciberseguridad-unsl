@@ -7,28 +7,39 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * Inicializador de base de datos en memoria H2 y verificación de almacenamiento de archivos.
- * Precarga registros de prueba en la tabla 'users' y asegura la disponibilidad de directorios.
+ * Configura tablas didácticas y un usuario H2 de solo lectura (ciberlab_ro) para aislar
+ * los endpoints vulnerables de SQL Injection frente a mutaciones destructivas.
  */
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseInitializer.class);
 
+    public static final String RO_DB_USER = "CIBERLAB_RO";
+    public static final String RO_DB_PASS = "CiberLabReadOnly2026";
+
     private final JdbcTemplate jdbcTemplate;
+    private final String datasourceUrl;
 
     @Value("${app.storage.base-dir:/app/storage}")
     private String storageBaseDir;
 
-    public DatabaseInitializer(JdbcTemplate jdbcTemplate) {
+    public DatabaseInitializer(
+            JdbcTemplate jdbcTemplate,
+            @Value("${spring.datasource.url}") String datasourceUrl) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasourceUrl = datasourceUrl;
     }
 
     @Override
@@ -37,8 +48,18 @@ public class DatabaseInitializer implements CommandLineRunner {
         ensureStorageDirectories();
     }
 
+    /**
+     * Obtiene una conexión JDBC con privilegios exclusivos de lectura (SELECT)
+     * sobre las tablas del taller SQLi, impidiendo DROP/DELETE/UPDATE/SHUTDOWN.
+     */
+    public Connection getReadOnlyConnection() throws SQLException {
+        // Omitir parámetros de configuración global (;DB_CLOSE_DELAY=...) que requieren privilegios ADMIN en H2
+        String roUrl = datasourceUrl.split(";")[0];
+        return DriverManager.getConnection(roUrl, RO_DB_USER, RO_DB_PASS);
+    }
+
     private void initializeDatabase() {
-        log.info("[Purple Team] Inicializando esquema y registros en H2 in-memory...");
+        log.info("[Purple Team] Inicializando esquema, registros y usuario Read-Only en H2...");
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS users");
         jdbcTemplate.execute("""
@@ -60,12 +81,47 @@ public class DatabaseInitializer implements CommandLineRunner {
             ('auditor_interno', 'Aud1t0r_SecOps!', 'AUDITOR', '333-44-5555')
         """);
 
+        // Tabla secundaria para SQL Injection Parte 2 (UNION-Based & Schema Discovery)
+        jdbcTemplate.execute("DROP TABLE IF EXISTS audit_secrets");
+        jdbcTemplate.execute("""
+            CREATE TABLE audit_secrets (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                code_name VARCHAR(100) NOT NULL,
+                secret_value VARCHAR(255) NOT NULL,
+                classification VARCHAR(50) NOT NULL
+            )
+        """);
+
+        jdbcTemplate.update("""
+            INSERT INTO audit_secrets (code_name, secret_value, classification) VALUES
+            ('DB_BACKUP_TOKEN', 'BKP-UNSL-2026-9941', 'INTERNAL'),
+            ('SQLI_UNION_CHALLENGE', 'FLAG{UNSL_SQLI_UNION_EXTRACTION_2026}', 'CONFIDENTIAL'),
+            ('CTF_DAY3_DB_KEY', 'FLAG{UNSL_CTF_DAY3_SCHEMA_HUNTER_2026}', 'TOP_SECRET')
+        """);
+
+        // Tabla para XSS Almacenado persistente en servidor, aislado por session_id del alumno
+        jdbcTemplate.execute("DROP TABLE IF EXISTS profile_notes");
+        jdbcTemplate.execute("""
+            CREATE TABLE profile_notes (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                session_id VARCHAR(80) NOT NULL,
+                author VARCHAR(80) NOT NULL,
+                content VARCHAR(600) NOT NULL,
+                created_at VARCHAR(40) NOT NULL
+            )
+        """);
+
+        // Usuario de solo lectura para ejecutar consultas SQLi vulnerables sin riesgo de destrucción
+        jdbcTemplate.execute("DROP USER IF EXISTS " + RO_DB_USER);
+        jdbcTemplate.execute("CREATE USER " + RO_DB_USER + " PASSWORD '" + RO_DB_PASS + "'");
+        jdbcTemplate.execute("GRANT SELECT ON users TO " + RO_DB_USER);
+        jdbcTemplate.execute("GRANT SELECT ON audit_secrets TO " + RO_DB_USER);
+
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
-        log.info("[Purple Team] Base de datos inicializada con {} registros en la tabla 'users'.", count);
+        log.info("[Purple Team] BD inicializada: {} usuarios, 3 registros en audit_secrets, usuario RO listo.", count);
     }
 
     private void ensureStorageDirectories() {
-        // Determinamos la ruta base: si /app/storage no existe (entorno de pruebas local sin docker), usamos ./storage
         Path basePath = Paths.get(storageBaseDir);
         if (!Files.exists(basePath)) {
             basePath = Paths.get("./storage");
@@ -114,9 +170,19 @@ public class DatabaseInitializer implements CommandLineRunner {
                     """);
             }
 
-            log.info("[Purple Team] Directorios y archivos de almacenamiento verificados en: {}", basePath.toAbsolutePath());
+            Path ctfBackup = confidentialDir.resolve("ctf_day3_audit.txt");
+            if (!Files.exists(ctfBackup)) {
+                Files.writeString(ctfBackup, """
+                    [RESPALDO INTERNO - DÍA 3 CTF]
+                    Nodo: sala8-pc11.unsl.edu.ar
+                    Evidencia de auditoría: FLAG{UNSL_CTF_DAY3_HIDDEN_BACKUP_2026}
+                    Nota: Verificar que Path.normalize() + startsWith() bloquee este acceso.
+                    """);
+            }
+
+            log.info("[Purple Team] Almacenamiento verificado en: {}", basePath.toAbsolutePath());
         } catch (IOException e) {
-            log.error("[Purple Team] Error asegurando estructura de almacenamiento: {}", e.getMessage());
+            log.error("[Purple Team] Error asegurando almacenamiento: {}", e.getMessage());
         }
     }
 }
