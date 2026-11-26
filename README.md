@@ -213,7 +213,8 @@ El servidor quedará accesible en:
 - `POST /api/profile/notes` — Guardar nueva nota (Persistencia aislada por sesión).
 
 ### CTF & Docente
-- `GET /api/ctf/state` — Estado actual de la CTF (bloqueada/desbloqueada, jornada activa, modo demo).
+- `GET /api/classroom/state` — Estado actual del aula (jornada activa, modo demo, estado de bloqueo de la CTF).
+- `GET /api/ctf/status` — Resumen de desafíos, módulos y puntaje total del laboratorio.
 - `GET /api/ctf/chain` — Pista actual y progreso en la cadena de 6 pasos.
 - `POST /api/ctf/submit` — Envío y validación de flags.
 - `GET /api/ctf/leaderboard` — Tabla de posiciones en tiempo real ordenada por puntos y tiempo.
